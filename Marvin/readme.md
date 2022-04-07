@@ -3,7 +3,6 @@ Marvin The Paranoid Android
 
 A discord bot that interprets user commands as FORTH code. 
 
----
 ## Technical Details
  - Written horribly in C, using the [Concord API](https://cogmasters.github.io/concord/)
  - Powered by FICL, despite being called Forth *Inspired* Command Language
@@ -14,7 +13,6 @@ A discord bot that interprets user commands as FORTH code.
    sending messages.
  - It's pretty freaking fast though. 
  
----
 ## Features
  - Distinction between usecases, allowing admins to interpret code, and
    users to interpret safer code without certain function calls(WIP, I have
@@ -26,7 +24,6 @@ A discord bot that interprets user commands as FORTH code.
  - Helpful debugging advice as well as tips
  - Beautified output. (I do want to make it prettier)
 
----
 ## Setup
  1. Clone this repo 
  2. Run `make`
