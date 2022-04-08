@@ -5,7 +5,8 @@
 
 #include "ficl.h"
 
-long int admin = 187673891018244096;
+// long int admin = 187673891018244096;
+long int admin = 0;
 ficlSystem *fth_system;
 
 void on_ready(struct discord *client) {
@@ -78,8 +79,8 @@ void on_message(struct discord *client, const struct discord_message *msg) {
         ends_in_string(msg->content, "!CMD")) {
       if (ends_in_string(msg->content, "!FTH")) {
         pfx = 3;
-      } else if (ends_in_string(msg->content, "!ADM")) {
-        pfx = 1;
+      } else if (ends_in_string(msg->content, "!ADM") ||
+                 ends_in_string(msg->content, "!CMD")) {
         if (msg->author->id != admin) {
           struct discord_embed embed = {
               .color = 16077157,
@@ -100,8 +101,11 @@ void on_message(struct discord *client, const struct discord_message *msg) {
 
           return;
         }
-      } else if (ends_in_string(msg->content, "!CMD")) {
-        pfx = 2;
+        if (ends_in_string(msg->content, "!ADM")) {
+          pfx = 3;
+        } else {
+          pfx = 2;
+        }
       }
 
       char *command =
