@@ -122,7 +122,7 @@ void cmdEmbed(struct discord *client, const struct discord_message *msg,
 }
 
 void errEmbed(struct discord *client, const struct discord_message *msg,
-              char *forth_in, char *forth_out, int fth_rc) {
+              char *forth_in, char *forth_out, int fth_rc, char *buffer) {
   bool debuggable = false;
   struct discord_embed embed = {
       .color = 16077157,
@@ -152,7 +152,7 @@ void errEmbed(struct discord *client, const struct discord_message *msg,
     discord_embed_add_field(
         &embed, "Error Explanation:",
         "Your code has encountered an error check output for info.", false);
-    if (strstr(forth_in, "not found")) {
+    if (strstr(buffer, "not found")) {
       discord_embed_set_title(&debug_embed, "Forth Bot: Attempted Debug");
       discord_embed_set_description(
           &debug_embed,
@@ -169,7 +169,7 @@ void errEmbed(struct discord *client, const struct discord_message *msg,
           "``CREATE``\n4) yell at it",
           false);
       debuggable = true;
-    } else if (strstr(forth_in, "Error: data stack underflow")) {
+    } else if (strstr(buffer, "Error: data stack underflow")) {
       discord_embed_set_title(&debug_embed, "Forth Bot: Attempted Debug");
       discord_embed_set_description(
           &debug_embed,
@@ -186,7 +186,7 @@ void errEmbed(struct discord *client, const struct discord_message *msg,
           "polish\n4) Cry",
           false);
       debuggable = true;
-    } else if (strstr(forth_in, "FICL_VM_STATE_COMPILE")) {
+    } else if (strstr(buffer, "FICL_VM_STATE_COMPILE")) {
       discord_embed_set_title(&debug_embed, "Forth Bot: Attempted Debug");
       discord_embed_set_description(
           &debug_embed,
@@ -397,7 +397,7 @@ void on_message(struct discord *client, const struct discord_message *msg) {
   if (pfx == 2) {
     cmdEmbed(client, msg, forth_in, forth_out, fth_rc);
   } else if (fth_rc != -257) {
-    errEmbed(client, msg, forth_in, forth_out, fth_rc);
+    errEmbed(client, msg, forth_in, forth_out, fth_rc, buffer);
   } else {
     regEmbed(client, msg, forth_in, forth_out);
   }
