@@ -123,80 +123,73 @@ void cmdEmbed(struct discord *client, const struct discord_message *msg,
 
 void errEmbed(struct discord *client, const struct discord_message *msg,
               char *forth_in, char *forth_out, int fth_rc, char *buffer) {
-  bool debuggable = false;
-  struct discord_embed embed = {
-      .color = 16077157,
-  };
+  struct discord_embed embeds[3] = {0};
+  embeds[0].color = 16077157;
+  embeds[1].color = 16077157;
+  embeds[2].color = 16077157;
+  discord_embed_set_title(&embeds[0], "Forth Bot Error");
 
-  struct discord_embed debug_embed = {
-      .color = 16077157,
-  };
-
-  discord_embed_set_title(&embed, "Forth Bot Error");
-
-  discord_embed_add_field(&embed, "Input Code:", forth_in, false);
+  discord_embed_add_field(&embeds[0], "Input Code:", forth_in, false);
 
   switch (fth_rc) {
   case -256:
-    discord_embed_add_field(&embed, "Error Explanation:",
+    discord_embed_add_field(&embeds[1], "Error Explanation:",
                             "Your code exited the inner interpreter loop",
                             false);
     break;
   case -258:
-    discord_embed_add_field(&embed, "Error Explanation:",
+    discord_embed_add_field(&embeds[1], "Error Explanation:",
                             "One of your words needs more text to "
                             "execute, try re-running it.",
                             false);
     break;
   case -260:
     discord_embed_add_field(
-        &embed, "Error Explanation:",
+        &embeds[1], "Error Explanation:",
         "Your code has encountered an error check output for info.", false);
     if (strstr(buffer, "not found")) {
-      discord_embed_set_title(&debug_embed, "Forth Bot: Attempted Debug");
+      discord_embed_set_title(&embeds[2], "Forth Bot: Attempted Debug");
       discord_embed_set_description(
-          &debug_embed,
+          &embeds[2],
           "Warning the info in here is a best guess it may or may not be "
           "correct. The debugger gurantees help but not helpfulness.");
-      discord_embed_add_field(&debug_embed, "Detected Issue:",
+      discord_embed_add_field(&embeds[2], "Detected Issue:",
                               "Your code contains a word which is not in "
                               "the current forth dictionary",
                               false);
       discord_embed_add_field(
-          &debug_embed, "Proposed solutions:",
+          &embeds[2], "Proposed solutions:",
           "1) Make sure the word is valid\n2) Check your function "
           "definitions\n3) Check dictionary modifier words such as "
           "``CREATE``\n4) yell at it",
           false);
-      debuggable = true;
     } else if (strstr(buffer, "Error: data stack underflow")) {
-      discord_embed_set_title(&debug_embed, "Forth Bot: Attempted Debug");
+      discord_embed_set_title(&embeds[2], "Forth Bot: Attempted Debug");
       discord_embed_set_description(
-          &debug_embed,
+          &embeds[2],
           "Warning the info in here is a best guess it may or may not be "
           "correct. The debugger gurantees help but not helpfulness.");
       discord_embed_add_field(
-          &debug_embed, "Detected Issue:",
+          &embeds[2], "Detected Issue:",
           "One of your words drew too much data from the data stack", false);
       discord_embed_add_field(
-          &debug_embed, "Proposed Solutions:",
+          &embeds[2], "Proposed Solutions:",
           "1) Check your most recently added code\n2) Use the ``.s`` "
           "word. it will show you the data stack without clearing it\n3) "
           "check the order in which data is recieved, FORTH is reverse "
           "polish\n4) Cry",
           false);
-      debuggable = true;
     } else if (strstr(buffer, "FICL_VM_STATE_COMPILE")) {
-      discord_embed_set_title(&debug_embed, "Forth Bot: Attempted Debug");
+      discord_embed_set_title(&embeds[2], "Forth Bot: Attempted Debug");
       discord_embed_set_description(
-          &debug_embed,
+          &embeds[2],
           "Warning the info in here is a best guess it may or may not be "
           "correct. The debugger gurantees help but not helpfulness.");
       discord_embed_add_field(
-          &debug_embed, "Detected Issue:",
+          &embeds[2], "Detected Issue:",
           "You've used a word which only works in the compiler", false);
       discord_embed_add_field(
-          &debug_embed, "Proposed Solutions:",
+          &embeds[2], "Proposed Solutions:",
           "1) This word can only be compiled\n2) Make sure it is defined "
           "in a funtion like so: ``: FUNCTION-NAME CODE ;``\n3) Make "
           "sure you aren't changing the compiler state to interpret\n4) "
@@ -204,7 +197,7 @@ void errEmbed(struct discord *client, const struct discord_message *msg,
           "``CREATE LITERAL IMMEDIATE``\n5) Cry",
           false);
       discord_embed_add_field(
-          &debug_embed, "Friendly Tip:",
+          &embeds[2], "Friendly Tip:",
           " Forth differentiates between words when it compiles them and "
           "when they are interpreted. Some words have different "
           "definitions at compile time. If you wish to run a word as "
@@ -214,7 +207,7 @@ void errEmbed(struct discord *client, const struct discord_message *msg,
           "basis of higher level FORTH.",
           false);
       discord_embed_add_field(
-          &debug_embed, "Friendly Tip:",
+          &embeds[2], "Friendly Tip:",
           "If you write a function in forth it is standard to use the "
           "following notation to describe its output ``( x -- x )``. "
           "Where x designates data, and the left designates data "
@@ -222,40 +215,37 @@ void errEmbed(struct discord *client, const struct discord_message *msg,
           "will be pushed on to the stack. ",
           false);
       discord_embed_add_field(
-          &debug_embed, "Friendly Tip:",
+          &embeds[2], "Friendly Tip:",
           "If you want to know more about compiler behaviour and "
           "modifying it, "
           "https://www.forth.com/starting-forth/"
           "11-forth-compiler-defining-words/ is a good resource.",
           false);
-      debuggable = true;
-    } else {
-      debuggable = false;
     }
     break;
   case -259:
-    discord_embed_add_field(
-        &embed, "Error Explanation:", "Your code  attempted to exit.", false);
+    discord_embed_add_field(&embeds[1], "Error Explanation:",
+                            "Your code  attempted to exit.", false);
     break;
   case -261:
-    discord_embed_add_field(&embed, "Error Explanation:",
+    discord_embed_add_field(&embeds[1], "Error Explanation:",
                             "Your code reached a debugger breakpoint.", false);
     break;
   case -1:
-    discord_embed_add_field(&embed, "Error Explanation",
+    discord_embed_add_field(&embeds[1], "Error Explanation",
                             "Your code encountered an error that made it "
                             "abort. Check the output",
                             false);
     break;
   case -2:
     discord_embed_add_field(
-        &embed, "Error Explanation",
+        &embeds[1], "Error Explanation",
         "Your code encountered an error that made it abort\". Check the "
         "output. Note this is different than the normal abort.",
         false);
     break;
   case -56:
-    discord_embed_add_field(&embed, "Error Explanation",
+    discord_embed_add_field(&embeds[1], "Error Explanation",
                             "Your code encountered an error that made it "
                             "quit. Check the output",
                             false);
@@ -263,59 +253,41 @@ void errEmbed(struct discord *client, const struct discord_message *msg,
   default:
     break;
   }
-  discord_embed_add_field(&embed, "Error Output:", forth_out, false);
-  if (debuggable == false) {
-    struct discord_create_message params = {
-        .embeds =
-            &(struct discord_embeds){
-                .size = 1,
-                .array = &embed,
-            },
-    };
-    discord_create_message(client, msg->channel_id, &params, NULL);
-    discord_embed_cleanup(&embed);
-  } else {
-    struct discord_create_message params = {
-        .embeds =
-            &(struct discord_embeds){
-                .size = 1,
-                .array = &embed,
-            },
-    };
-    struct discord_create_message params2 = {
-        .embeds =
-            &(struct discord_embeds){
-                .size = 1,
-                .array = &debug_embed,
-            },
-    };
-    discord_create_message(client, msg->channel_id, &params, NULL);
-    discord_embed_cleanup(&embed);
-    discord_create_message(client, msg->channel_id, &params2, NULL);
-    discord_embed_cleanup(&debug_embed);
-  }
+  discord_embed_add_field(&embeds[1], "Error Output:", forth_out, false);
+  discord_create_message(
+      client, msg->channel_id,
+      &(struct discord_create_message){
+          .embeds =
+              &(struct discord_embeds){.size = sizeof(embeds) / sizeof *embeds,
+                                       .array = embeds}},
+      NULL);
+  discord_embed_cleanup(&embeds[0]);
+  discord_embed_cleanup(&embeds[1]);
+  discord_embed_cleanup(&embeds[2]);
 }
 
 void regEmbed(struct discord *client, const struct discord_message *msg,
               char *forth_in, char *forth_out) {
-  struct discord_embed embed = {
-      .color = 4835913,
-  };
+  struct discord_embed embeds[2] = {0};
 
-  discord_embed_set_title(&embed, "Forth Bot");
+  embeds[0].color = 4835913;
+  embeds[1].color = 4835913;
 
-  discord_embed_add_field(&embed, "Input Code:", forth_in, false);
-  discord_embed_add_field(&embed, "Output:", forth_out, false);
+  discord_embed_set_title(&embeds[0], "Forth Bot");
 
-  struct discord_create_message params = {
-      .embeds =
-          &(struct discord_embeds){
-              .size = 1,
-              .array = &embed,
-          },
-  };
-  discord_create_message(client, msg->channel_id, &params, NULL);
-  discord_embed_cleanup(&embed);
+  discord_embed_add_field(&embeds[0], "Input Code:", forth_in, false);
+  discord_embed_add_field(&embeds[1], "Output:", forth_out, false);
+
+  discord_create_message(
+      client, msg->channel_id,
+      &(struct discord_create_message){
+          .embeds =
+              &(struct discord_embeds){.size = sizeof(embeds) / sizeof *embeds,
+                                       .array = embeds}},
+      NULL);
+
+  discord_embed_cleanup(&embeds[0]);
+  discord_embed_cleanup(&embeds[1]);
 }
 
 void on_message(struct discord *client, const struct discord_message *msg) {
