@@ -111,6 +111,15 @@ void cmdEmbed(struct discord *client, const struct discord_message *msg,
     discord_embed_set_description(&output_embed, forth_out);
   }
   struct discord_create_message params = {
+      .message_reference = &(struct discord_message_reference){
+                               .message_id = msg->id,
+                               .channel_id = msg->channel_id,
+                               .guild_id = msg->guild_id,
+                           },
+      .allowed_mentions = &(struct discord_allowed_mention){
+                               .replied_user = false,
+                          },
+
       .embeds =
           &(struct discord_embeds){
               .size = 1,
@@ -257,6 +266,15 @@ void errEmbed(struct discord *client, const struct discord_message *msg,
   discord_create_message(
       client, msg->channel_id,
       &(struct discord_create_message){
+          .allowed_mentions = &(struct discord_allowed_mention){
+                               .replied_user = false,
+                          },
+          .message_reference = &(struct discord_message_reference){
+                               .message_id = msg->id,
+                               .channel_id = msg->channel_id,
+                               .guild_id = msg->guild_id,
+                           },
+
           .embeds =
               &(struct discord_embeds){.size = sizeof(embeds) / sizeof *embeds,
                                        .array = embeds}},
@@ -277,10 +295,18 @@ void regEmbed(struct discord *client, const struct discord_message *msg,
 
   discord_embed_add_field(&embeds[0], "Input Code:", forth_in, false);
   discord_embed_add_field(&embeds[1], "Output:", forth_out, false);
-
+  
   discord_create_message(
       client, msg->channel_id,
       &(struct discord_create_message){
+      .allowed_mentions = &(struct discord_allowed_mention){
+                               .replied_user = false,
+                          },
+      .message_reference = &(struct discord_message_reference){
+                               .message_id = msg->id,
+                               .channel_id = msg->channel_id,
+                               .guild_id = msg->guild_id,
+                           },
           .embeds =
               &(struct discord_embeds){.size = sizeof(embeds) / sizeof *embeds,
                                        .array = embeds}},
