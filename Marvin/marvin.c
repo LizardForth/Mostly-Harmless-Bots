@@ -100,34 +100,64 @@ int getPrefix(struct discord *client, const struct discord_message *msg) {
 
 void cmdEmbed(struct discord *client, const struct discord_message *msg,
               char *forth_in, char *forth_out, int fth_rc) {
-  struct discord_embed output_embed = {};
   if (fth_rc != -257) {
-    output_embed.color = 16077157;
-    discord_embed_set_title(&output_embed, "Command Error");
-    discord_embed_set_description(&output_embed, forth_out);
-  } else {
-    output_embed.color = 4835913;
-    discord_embed_set_title(&output_embed, "Command Out");
-    discord_embed_set_description(&output_embed, forth_out);
-  }
-  struct discord_create_message params = {
-      .message_reference = &(struct discord_message_reference){
-                               .message_id = msg->id,
-                               .channel_id = msg->channel_id,
-                               .guild_id = msg->guild_id,
-                           },
-      .allowed_mentions = &(struct discord_allowed_mention){
-                               .replied_user = false,
-                          },
+    struct discord_embed embeds[] = {
+      {
+        .title = "Command Error", 
+        .color = 16077157,
+        .description = forth_out,
+      },
+    };
+    struct discord_create_message params = {
+      .message_reference =
+          &(struct discord_message_reference){
+              .message_id = msg->id,
+              .channel_id = msg->channel_id,
+              .guild_id = msg->guild_id,
+          },
+      .allowed_mentions =
+          &(struct discord_allowed_mention){
+              .replied_user = false,
+          },
 
       .embeds =
           &(struct discord_embeds){
-              .size = 1,
-              .array = &output_embed,
+              .size = sizeof(embeds) / sizeof *embeds,
+              .array = embeds,
+          },
+  };
+    discord_create_message(client, msg->channel_id, &params, NULL);
+  } else {
+    struct discord_embed embeds[] = {
+      {
+        .title = "Command Output", 
+        .color = 4835913,
+        .description = forth_out,
+      },
+    };
+    
+    struct discord_create_message params = {
+      .message_reference =
+          &(struct discord_message_reference){
+              .message_id = msg->id,
+              .channel_id = msg->channel_id,
+              .guild_id = msg->guild_id,
+          },
+      .allowed_mentions =
+          &(struct discord_allowed_mention){
+              .replied_user = false,
+          },
+
+      .embeds =
+          &(struct discord_embeds){
+              .size = sizeof(embeds) / sizeof *embeds,
+              .array = embeds,
           },
   };
   discord_create_message(client, msg->channel_id, &params, NULL);
-  discord_embed_cleanup(&output_embed);
+  }
+  
+
 }
 
 void errEmbed(struct discord *client, const struct discord_message *msg,
@@ -266,14 +296,16 @@ void errEmbed(struct discord *client, const struct discord_message *msg,
   discord_create_message(
       client, msg->channel_id,
       &(struct discord_create_message){
-          .allowed_mentions = &(struct discord_allowed_mention){
-                               .replied_user = false,
-                          },
-          .message_reference = &(struct discord_message_reference){
-                               .message_id = msg->id,
-                               .channel_id = msg->channel_id,
-                               .guild_id = msg->guild_id,
-                           },
+          .allowed_mentions =
+              &(struct discord_allowed_mention){
+                  .replied_user = false,
+              },
+          .message_reference =
+              &(struct discord_message_reference){
+                  .message_id = msg->id,
+                  .channel_id = msg->channel_id,
+                  .guild_id = msg->guild_id,
+              },
 
           .embeds =
               &(struct discord_embeds){.size = sizeof(embeds) / sizeof *embeds,
@@ -286,34 +318,39 @@ void errEmbed(struct discord *client, const struct discord_message *msg,
 
 void regEmbed(struct discord *client, const struct discord_message *msg,
               char *forth_in, char *forth_out) {
-  struct discord_embed embeds[2] = {0};
+  struct discord_embed embeds[] = {
+      {.title = "Forth Bot:",
+       .color = 4835913,
+       .fields =
+           &(struct discord_embed_fields){
+               .size = 1,
+               .array = (struct discord_embed_field[])
+                   {{.name = "Input Code:",
+                     .value = forth_in,
+                     .Inline = false}}}},
+      {.color = 4835913,
+       .fields = &(struct discord_embed_fields){
+           .size = 1,
+           .array = (struct discord_embed_field[]) {
+               {.name = "Output:", .value = forth_out, .Inline = false}}}}};
 
-  embeds[0].color = 4835913;
-  embeds[1].color = 4835913;
-
-  discord_embed_set_title(&embeds[0], "Forth Bot");
-
-  discord_embed_add_field(&embeds[0], "Input Code:", forth_in, false);
-  discord_embed_add_field(&embeds[1], "Output:", forth_out, false);
-  
   discord_create_message(
       client, msg->channel_id,
       &(struct discord_create_message){
-      .allowed_mentions = &(struct discord_allowed_mention){
-                               .replied_user = false,
-                          },
-      .message_reference = &(struct discord_message_reference){
-                               .message_id = msg->id,
-                               .channel_id = msg->channel_id,
-                               .guild_id = msg->guild_id,
-                           },
+          .allowed_mentions =
+              &(struct discord_allowed_mention){
+                  .replied_user = false,
+              },
+          .message_reference =
+              &(struct discord_message_reference){
+                  .message_id = msg->id,
+                  .channel_id = msg->channel_id,
+                  .guild_id = msg->guild_id,
+              },
           .embeds =
               &(struct discord_embeds){.size = sizeof(embeds) / sizeof *embeds,
                                        .array = embeds}},
       NULL);
-
-  discord_embed_cleanup(&embeds[0]);
-  discord_embed_cleanup(&embeds[1]);
 }
 
 void on_message(struct discord *client, const struct discord_message *msg) {
