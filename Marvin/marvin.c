@@ -102,62 +102,60 @@ void cmdEmbed(struct discord *client, const struct discord_message *msg,
               char *forth_in, char *forth_out, int fth_rc) {
   if (fth_rc != -257) {
     struct discord_embed embeds[] = {
-      {
-        .title = "Command Error", 
-        .color = 16077157,
-        .description = forth_out,
-      },
+        {
+            .title = "Command Error",
+            .color = 16077157,
+            .description = forth_out,
+        },
     };
     struct discord_create_message params = {
-      .message_reference =
-          &(struct discord_message_reference){
-              .message_id = msg->id,
-              .channel_id = msg->channel_id,
-              .guild_id = msg->guild_id,
-          },
-      .allowed_mentions =
-          &(struct discord_allowed_mention){
-              .replied_user = false,
-          },
+        .message_reference =
+            &(struct discord_message_reference){
+                .message_id = msg->id,
+                .channel_id = msg->channel_id,
+                .guild_id = msg->guild_id,
+            },
+        .allowed_mentions =
+            &(struct discord_allowed_mention){
+                .replied_user = false,
+            },
 
-      .embeds =
-          &(struct discord_embeds){
-              .size = sizeof(embeds) / sizeof *embeds,
-              .array = embeds,
-          },
-  };
+        .embeds =
+            &(struct discord_embeds){
+                .size = sizeof(embeds) / sizeof *embeds,
+                .array = embeds,
+            },
+    };
     discord_create_message(client, msg->channel_id, &params, NULL);
   } else {
     struct discord_embed embeds[] = {
-      {
-        .title = "Command Output", 
-        .color = 4835913,
-        .description = forth_out,
-      },
+        {
+            .title = "Command Output",
+            .color = 4835913,
+            .description = forth_out,
+        },
     };
-    
+
     struct discord_create_message params = {
-      .message_reference =
-          &(struct discord_message_reference){
-              .message_id = msg->id,
-              .channel_id = msg->channel_id,
-              .guild_id = msg->guild_id,
-          },
-      .allowed_mentions =
-          &(struct discord_allowed_mention){
-              .replied_user = false,
-          },
+        .message_reference =
+            &(struct discord_message_reference){
+                .message_id = msg->id,
+                .channel_id = msg->channel_id,
+                .guild_id = msg->guild_id,
+            },
+        .allowed_mentions =
+            &(struct discord_allowed_mention){
+                .replied_user = false,
+            },
 
-      .embeds =
-          &(struct discord_embeds){
-              .size = sizeof(embeds) / sizeof *embeds,
-              .array = embeds,
-          },
-  };
-  discord_create_message(client, msg->channel_id, &params, NULL);
+        .embeds =
+            &(struct discord_embeds){
+                .size = sizeof(embeds) / sizeof *embeds,
+                .array = embeds,
+            },
+    };
+    discord_create_message(client, msg->channel_id, &params, NULL);
   }
-  
-
 }
 
 void errEmbed(struct discord *client, const struct discord_message *msg,
@@ -324,14 +322,13 @@ void regEmbed(struct discord *client, const struct discord_message *msg,
        .fields =
            &(struct discord_embed_fields){
                .size = 1,
-               .array = (struct discord_embed_field[])
-                   {{.name = "Input Code:",
-                     .value = forth_in,
-                     .Inline = false}}}},
+               .array = (struct discord_embed_field[]){{.name = "Input Code:",
+                                                        .value = forth_in,
+                                                        .Inline = false}}}},
       {.color = 4835913,
        .fields = &(struct discord_embed_fields){
            .size = 1,
-           .array = (struct discord_embed_field[]) {
+           .array = (struct discord_embed_field[]){
                {.name = "Output:", .value = forth_out, .Inline = false}}}}};
 
   discord_create_message(
