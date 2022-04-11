@@ -101,9 +101,11 @@ int getPrefix(struct discord *client, const struct discord_message *msg) {
 void cmdEmbed(struct discord *client, const struct discord_message *msg,
               char *forth_in, char *forth_out, int fth_rc) {
   if (fth_rc != -257) {
+    char output_title[32];
+    snprintf(output_title, 32, "Command Error: %d", fth_rc);
     struct discord_embed embeds[] = {
         {
-            .title = "Command Error",
+            .title = output_title,
             .color = 16077157,
             .description = forth_out,
         },
