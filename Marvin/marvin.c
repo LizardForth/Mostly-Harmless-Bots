@@ -389,7 +389,7 @@ void on_message(struct discord *client, const struct discord_message *msg) {
 
   char *command = (char *)malloc(strlen(msg->content) + 1);
 
-  strcpy(command, msg->content);
+  strncpy(command, msg->content, strlen(command));
 
   int fth_rc;
 
@@ -400,7 +400,7 @@ void on_message(struct discord *client, const struct discord_message *msg) {
   char *command_old = (char *)malloc(strlen(command) + 1);
   char *forth_in = (char *)malloc(strlen(command) + 9);
 
-  strcpy(command_old, command);
+  strncpy(command_old, command, strlen(command));
 
   log_info("Prefix number: %d", pfx);
 
@@ -408,7 +408,7 @@ void on_message(struct discord *client, const struct discord_message *msg) {
     char *addon = ": TEST .\" TEST\" ; ";
     char *prep = strdup(command);
     command = (char *)realloc(command, strlen(command) + strlen(addon) + 2);
-    sprintf(command, "%s %s", addon, prep);
+    snprintf(command, strlen(command) + strlen(addon) + 2,"%s %s", addon, prep);
     free(prep);
   }
 
@@ -425,8 +425,8 @@ void on_message(struct discord *client, const struct discord_message *msg) {
 
   log_info("Exit Code: %d", fth_rc);
 
-  sprintf(forth_out, "``` %s ```", buffer);
-  sprintf(forth_in, "``` %s ```", command_old);
+  snprintf(forth_out, strlen(buffer) + 9, "``` %s ```", buffer);
+  snprintf(forth_in, strlen(command_old) + 9, "``` %s ```", command_old);
 
   log_info("Output: %s", buffer);
   if (pfx == 2) {
