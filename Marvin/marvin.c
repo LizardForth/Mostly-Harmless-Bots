@@ -2,7 +2,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h> 
+#include <unistd.h>
 
 #include "ficl.h"
 
@@ -13,13 +13,11 @@ long int admin = 187673891018244096;
 
 ficlSystem *fth_system;
 
-struct forth_args
-{
-  char* buffer;
-  char* command;
+struct forth_args {
+  char *buffer;
+  char *command;
   int fth_rc;
 };
-
 
 void on_ready(struct discord *client) {
   const struct discord_user *bot = discord_get_self(client);
@@ -364,11 +362,12 @@ void *forth_execute(void *input) {
   log_info("Starting forth thread");
   ficlVm *vm;
   vm = ficlSystemCreateVm(fth_system);
-  log_info("Recieved: %s", ((struct forth_args*)input)->command);
+  log_info("Recieved: %s", ((struct forth_args *)input)->command);
   fflush(stdout);
   freopen("/dev/null", "a", stdout);
-  setbuf(stdout, ((struct forth_args*)input)->buffer);
-  ((struct forth_args*)input)->fth_rc = ficlVmEvaluate(vm, ((struct forth_args*)input)->command);
+  setbuf(stdout, ((struct forth_args *)input)->buffer);
+  ((struct forth_args *)input)->fth_rc =
+      ficlVmEvaluate(vm, ((struct forth_args *)input)->command);
   fflush(stdout);
   freopen("/dev/tty", "a", stdout);
   pthread_exit(NULL);
@@ -376,7 +375,7 @@ void *forth_execute(void *input) {
 
 void *watchcat(void *input) {
   log_info("Starting watchcat");
-  sleep(10); 
+  sleep(10);
   pthread_cancel(*(pthread_t *)input);
   pthread_exit(NULL);
 }
@@ -415,7 +414,7 @@ void on_message(struct discord *client, const struct discord_message *msg) {
     return;
   }
 
-  char *command = (char *)malloc(strlen(msg->content)+4);
+  char *command = (char *)malloc(strlen(msg->content) + 4);
 
   strncpy(command, msg->content, strlen(msg->content));
   int fth_rc;
@@ -440,22 +439,22 @@ void on_message(struct discord *client, const struct discord_message *msg) {
 
   log_info("Parsed: %s", command);
 
-  struct forth_args *forth_args_in = (struct forth_args *)malloc(sizeof(struct forth_args));
+  struct forth_args *forth_args_in =
+      (struct forth_args *)malloc(sizeof(struct forth_args));
   forth_args_in->command = command;
   forth_args_in->buffer = buffer;
-  
+
   pthread_t tid1;
   pthread_t tid2;
   pthread_create(&tid1, NULL, forth_execute, (void *)forth_args_in);
-  
+
   log_info("Watching: %d", tid1);
   pthread_create(&tid2, NULL, watchcat, &tid1);
   pthread_join(tid1, NULL);
   pthread_cancel(tid2);
-  
+
   fth_rc = forth_args_in->fth_rc;
-  
-  
+
   log_info("Exit Code: %d", fth_rc);
 
   snprintf(forth_out, strlen(buffer) + 9, "``` %s ```", buffer);
