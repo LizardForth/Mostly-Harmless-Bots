@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <time.h>
 
 #include "ficl.h"
 
@@ -373,13 +374,6 @@ void *forth_execute(void *input) {
   pthread_exit(NULL);
 }
 
-void *watchcat(void *input) {
-  log_info("Starting watchcat");
-  sleep(10);
-  pthread_cancel(*(pthread_t *)input);
-  pthread_exit(NULL);
-}
-
 void on_message(struct discord *client, const struct discord_message *msg) {
 
   char buffer[10000] = {0};
@@ -444,15 +438,10 @@ void on_message(struct discord *client, const struct discord_message *msg) {
   forth_args_in->command = command;
   forth_args_in->buffer = buffer;
 
-  pthread_t tid1;
-  pthread_t tid2;
-  pthread_create(&tid1, NULL, forth_execute, (void *)forth_args_in);
-
-  log_info("Watching: %d", tid1);
-  pthread_create(&tid2, NULL, watchcat, &tid1);
-  pthread_join(tid1, NULL);
-  pthread_cancel(tid2);
-
+  pthread_t tid;
+  pthread_create(&tid, NULL, forth_execute, (void *)forth_args_in);
+  pthread_join(tid, NULL);
+  
   fth_rc = forth_args_in->fth_rc;
 
   log_info("Exit Code: %d", fth_rc);
