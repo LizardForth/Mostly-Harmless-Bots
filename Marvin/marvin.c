@@ -1,16 +1,17 @@
 #include <concord/discord.h>
 #include <pthread.h>
+#include <signal.h>
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "ficl.h"
 
-long int admin = 187673891018244096;
+// long int admin = 187673891018244096;
 
 // Auth Testing
-// long int admin = 0;
+long int admin = 0;
 
 ficlSystem *fth_system;
 
@@ -19,6 +20,9 @@ struct forth_args {
   char *command;
   int fth_rc;
 };
+
+pthread_mutex_t forthMutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t forthCond = PTHREAD_COND_INITIALIZER;
 
 void on_ready(struct discord *client) {
   const struct discord_user *bot = discord_get_self(client);
@@ -67,8 +71,56 @@ int ends_in_string(char str[], char substr[]) {
   }
 }
 
-int getPrefix(struct discord *client, const struct discord_message *msg) {
+void accessErrorEmbed(struct discord *client, const struct discord_message *msg,
+                      char *forth_in) {
+  struct discord_embed embeds[] = {
+      {.title = "Forth Bot Error: ",
+       .color = 16077157,
+       .fields =
+           &(struct discord_embed_fields){
+               .size = 1,
+               .array = (struct discord_embed_field[]){{.name = "Input Code:",
+                                                        .value = forth_in,
+                                                        .Inline = false}}}},
+      {.color = 16077157,
+       .fields = &(struct discord_embed_fields){
+           .size = 2,
+           .array = (struct discord_embed_field[]){
+               {.name = "Error Explanation:",
+                .value = "Your code access a function or did something that "
+                         "triggered one of our saftey checks. **Please don't "
+                         "do that again**.",
+                .Inline = false},
+               {.name = "Output:",
+                .value = "```Error: your code attempted to do something it "
+                         "shouldn't```",
+                .Inline = false}}}}};
+
+  discord_create_message(
+      client, msg->channel_id,
+      &(struct discord_create_message){
+          .allowed_mentions =
+              &(struct discord_allowed_mention){
+                  .replied_user = false,
+              },
+          .message_reference =
+              &(struct discord_message_reference){
+                  .message_id = msg->id,
+                  .channel_id = msg->channel_id,
+                  .guild_id = msg->guild_id,
+              },
+          .embeds =
+              &(struct discord_embeds){.size = sizeof(embeds) / sizeof *embeds,
+                                       .array = embeds}},
+      NULL);
+}
+
+int getPrefix(struct discord *client, const struct discord_message *msg,
+              char *forth_in) {
   int pfx = 0;
+  char *access = (char *)malloc(strlen(forth_in) + 9);
+
+  snprintf(access, strlen(forth_in) + 9, "``` %s ```", forth_in);
   if (ends_in_string(msg->content, "!FTH") ||
       ends_in_string(msg->content, "!ADM") ||
       ends_in_string(msg->content, "!CMD")) {
@@ -77,23 +129,7 @@ int getPrefix(struct discord *client, const struct discord_message *msg) {
     } else if (ends_in_string(msg->content, "!ADM") ||
                ends_in_string(msg->content, "!CMD")) {
       if (msg->author->id != admin) {
-        struct discord_embed embed = {
-            .color = 16077157,
-        };
-
-        discord_embed_set_title(&embed, "Warning");
-        discord_embed_set_description(&embed, "Your are not authorized");
-
-        struct discord_create_message params = {
-            .embeds =
-                &(struct discord_embeds){
-                    .size = 1,
-                    .array = &embed,
-                },
-        };
-
-        discord_create_message(client, msg->channel_id, &params, NULL);
-
+        accessErrorEmbed(client, msg, access);
         return 0;
       }
       if (ends_in_string(msg->content, "!ADM")) {
@@ -174,7 +210,7 @@ void errEmbed(struct discord *client, const struct discord_message *msg,
   embeds[0].color = 16077157;
   embeds[1].color = 16077157;
   embeds[2].color = 16077157;
-  discord_embed_set_title(&embeds[0], "Forth Bot Error");
+  discord_embed_set_title(&embeds[0], "Forth Bot Error:");
 
   discord_embed_add_field(&embeds[0], "Input Code:", forth_in, false);
 
@@ -359,6 +395,49 @@ void regEmbed(struct discord *client, const struct discord_message *msg,
                                        .array = embeds}},
       NULL);
 }
+
+void timeoutEmbed(struct discord *client, const struct discord_message *msg,
+                  char *forth_in) {
+  struct discord_embed embeds[] = {
+      {.title = "Forth Bot Error: ",
+       .color = 16077157,
+       .fields =
+           &(struct discord_embed_fields){
+               .size = 1,
+               .array = (struct discord_embed_field[]){{.name = "Input Code:",
+                                                        .value = forth_in,
+                                                        .Inline = false}}}},
+      {.color = 16077157,
+       .fields = &(struct discord_embed_fields){
+           .size = 2,
+           .array = (struct discord_embed_field[]){
+               {.name = "Error Explanation:",
+                .value = "Your code took longer than expected to execute. In "
+                         "most cases this is an infinite loop.",
+                .Inline = false},
+               {.name = "Output:",
+                .value = "```Error: your code took too long to execute```",
+                .Inline = false}}}}};
+
+  discord_create_message(
+      client, msg->channel_id,
+      &(struct discord_create_message){
+          .allowed_mentions =
+              &(struct discord_allowed_mention){
+                  .replied_user = false,
+              },
+          .message_reference =
+              &(struct discord_message_reference){
+                  .message_id = msg->id,
+                  .channel_id = msg->channel_id,
+                  .guild_id = msg->guild_id,
+              },
+          .embeds =
+              &(struct discord_embeds){.size = sizeof(embeds) / sizeof *embeds,
+                                       .array = embeds}},
+      NULL);
+}
+
 void *forth_execute(void *input) {
   log_info("Starting forth thread");
   ficlVm *vm;
@@ -367,10 +446,31 @@ void *forth_execute(void *input) {
   fflush(stdout);
   freopen("/dev/null", "a", stdout);
   setbuf(stdout, ((struct forth_args *)input)->buffer);
+  ((struct forth_args *)input)->fth_rc = -127;
   ((struct forth_args *)input)->fth_rc =
       ficlVmEvaluate(vm, ((struct forth_args *)input)->command);
   fflush(stdout);
   freopen("/dev/tty", "a", stdout);
+  pthread_cond_signal(&forthCond);
+  pthread_exit(NULL);
+}
+void *watchcat(void *input) {
+  struct timespec ts;
+  int rc = 0;
+  clock_gettime(CLOCK_REALTIME, &ts);
+  ts.tv_sec += 10;
+
+  log_info("Starting the watcher");
+  pthread_mutex_lock(&forthMutex);
+  rc = pthread_cond_timedwait(&forthCond, &forthMutex, &ts);
+  if (rc == 0) {
+    log_info("Executed Successfully");
+  } else {
+    log_info("timed out");
+    log_info("Killing %d", (pthread_t)input);
+    pthread_kill((pthread_t)input, SIGKILL);
+  }
+  pthread_mutex_unlock(&forthMutex);
   pthread_exit(NULL);
 }
 
@@ -379,7 +479,7 @@ void on_message(struct discord *client, const struct discord_message *msg) {
   char buffer[10000] = {0};
   char forth_out[10009];
 
-  int pfx = getPrefix(client, msg);
+  int pfx = getPrefix(client, msg, msg->content);
   if (pfx == 0) {
     return;
   }
@@ -438,33 +538,43 @@ void on_message(struct discord *client, const struct discord_message *msg) {
   forth_args_in->command = command;
   forth_args_in->buffer = buffer;
 
-  pthread_t tid;
-  pthread_create(&tid, NULL, forth_execute, (void *)forth_args_in);
-  pthread_join(tid, NULL);
-  
+  pthread_t tid1;
+  pthread_t tid2;
+  pthread_create(&tid2, NULL, watchcat, (void *)&tid1);
+  pthread_create(&tid1, NULL, forth_execute, (void *)forth_args_in);
+  pthread_join(tid2, NULL);
+
   fth_rc = forth_args_in->fth_rc;
 
   log_info("Exit Code: %d", fth_rc);
-
   snprintf(forth_out, strlen(buffer) + 9, "``` %s ```", buffer);
   snprintf(forth_in, strlen(command_old) + 9, "``` %s ```", command_old);
 
   log_info("Output: %s", buffer);
-  if (pfx == 2) {
-    cmdEmbed(client, msg, forth_in, forth_out, fth_rc);
-  } else if (fth_rc != -257) {
-    errEmbed(client, msg, forth_in, forth_out, fth_rc, buffer);
+
+  if (fth_rc == -127) {
+    timeoutEmbed(client, msg, forth_in);
   } else {
-    regEmbed(client, msg, forth_in, forth_out);
+    if (pfx == 2) {
+      cmdEmbed(client, msg, forth_in, forth_out, fth_rc);
+    } else if (fth_rc != -257) {
+      errEmbed(client, msg, forth_in, forth_out, fth_rc, buffer);
+    } else {
+      regEmbed(client, msg, forth_in, forth_out);
+    }
   }
   free(command);
   free(command_old);
   free(forth_in);
+  free(forth_args_in);
 }
 
 int main(void) {
   char token[100];
   FILE *fptr;
+
+  pthread_mutex_init(&forthMutex, NULL);
+  pthread_cond_init(&forthCond, NULL);
 
   fth_system = ficlSystemCreate(NULL);
   ficlSystemCompileExtras(fth_system);
