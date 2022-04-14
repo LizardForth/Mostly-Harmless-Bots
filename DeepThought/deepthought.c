@@ -8,11 +8,6 @@
 
 #include "ficl.h"
 
-// long int admin = 187673891018244096;
-
-// Auth Testing
-long int admin = 0;
-
 ficlSystem *fth_system;
 
 struct forth_args {
@@ -119,7 +114,7 @@ int getPrefix(struct discord *client, const struct discord_message *msg,
               char *forth_in) {
   int pfx = 0;
   char *access = (char *)malloc(strlen(forth_in) + 9);
-
+  bool admin = false;
   snprintf(access, strlen(forth_in) + 9, "``` %s ```", forth_in);
   if (ends_in_string(msg->content, "!FTH") ||
       ends_in_string(msg->content, "!ADM") ||
@@ -128,10 +123,17 @@ int getPrefix(struct discord *client, const struct discord_message *msg,
       pfx = 3;
     } else if (ends_in_string(msg->content, "!ADM") ||
                ends_in_string(msg->content, "!CMD")) {
-      if (msg->author->id != admin) {
+      for (int i = 0; i < msg->member->roles->size; i++) {
+        if (msg->member->roles->array[i] == 953785894656147566) {
+          log_info("Admin is Executing");
+          admin = true;
+        }
+      }
+      if (!admin) {
         accessErrorEmbed(client, msg, access);
         return 0;
       }
+
       if (ends_in_string(msg->content, "!ADM")) {
         pfx = 3;
       } else {
@@ -479,13 +481,13 @@ void on_message(struct discord *client, const struct discord_message *msg) {
   char buffer[10000] = {0};
   char forth_out[10009];
 
+  if (msg->author->bot)
+    return;
+
   int pfx = getPrefix(client, msg, msg->content);
   if (pfx == 0) {
     return;
   }
-
-  if (msg->author->bot)
-    return;
 
   if (strlen(msg->content) > 10002) {
     struct discord_embed embed = {
