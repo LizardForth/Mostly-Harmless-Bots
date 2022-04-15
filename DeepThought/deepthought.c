@@ -512,10 +512,8 @@ void on_message(struct discord *client, const struct discord_message *msg) {
 
   char *command = (char *)malloc(strlen(msg->content) + 4);
 
-  strncpy(command, msg->content, strlen(msg->content));
+  strncpy(command, msg->content, strlen(msg->content) - 4);
   int fth_rc;
-
-  command[strlen(command) - 4] = '\0';
 
   char *command_old = (char *)malloc(strlen(command) + 1);
   char *forth_in = (char *)malloc(strlen(command) + 9);
