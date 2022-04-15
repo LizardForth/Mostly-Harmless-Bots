@@ -14,10 +14,13 @@ struct forth_args {
   char *buffer;
   char *command;
   int fth_rc;
+  int pfx;
 };
 
 pthread_mutex_t forthMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t forthCond = PTHREAD_COND_INITIALIZER;
+
+static void disRestart(ficlVm *vm) { raise(SIGINT); }
 
 void on_ready(struct discord *client) {
   const struct discord_user *bot = discord_get_self(client);
@@ -120,7 +123,7 @@ int getPrefix(struct discord *client, const struct discord_message *msg,
       ends_in_string(msg->content, "!ADM") ||
       ends_in_string(msg->content, "!CMD")) {
     if (ends_in_string(msg->content, "!FTH")) {
-      pfx = 3;
+      pfx = 1;
     } else if (ends_in_string(msg->content, "!ADM") ||
                ends_in_string(msg->content, "!CMD")) {
       for (int i = 0; i < msg->member->roles->size; i++) {
@@ -444,6 +447,12 @@ void *forth_execute(void *input) {
   log_info("Starting forth thread");
   ficlVm *vm;
   vm = ficlSystemCreateVm(fth_system);
+  if (((struct forth_args *)input)->pfx == 2 ||
+      ((struct forth_args *)input)->pfx == 3) {
+    ficlDictionary *dictionary = ficlVmGetDictionary(vm);
+    ficlDictionarySetPrimitive(dictionary, "restart", disRestart,
+                               FICL_WORD_DEFAULT);
+  }
   log_info("Recieved: %s", ((struct forth_args *)input)->command);
   fflush(stdout);
   freopen("/dev/null", "a", stdout);
@@ -537,6 +546,7 @@ void on_message(struct discord *client, const struct discord_message *msg) {
       (struct forth_args *)malloc(sizeof(struct forth_args));
   forth_args_in->command = command;
   forth_args_in->buffer = buffer;
+  forth_args_in->pfx = pfx;
 
   pthread_t tid1;
   pthread_t tid2;

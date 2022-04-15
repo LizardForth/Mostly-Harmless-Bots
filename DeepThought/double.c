@@ -21,7 +21,7 @@
 ** contact me by email at the address above.
 **
 ** L I C E N S E  and  D I S C L A I M E R
-** 
+**
 ** Redistribution and use in source and binary forms, with or without
 ** modification, are permitted provided that the following conditions
 ** are met:
@@ -48,339 +48,291 @@
 
 #include "ficl.h"
 
-
 #if FICL_PLATFORM_HAS_2INTEGER
 
+ficl2UnsignedQR ficl2UnsignedDivide(ficl2Unsigned q, ficlUnsigned y) {
+  ficl2UnsignedQR result;
 
+  result.quotient = q / y;
+  /*
+  ** Once we have the quotient, it's cheaper to calculate the
+  ** remainder this way than with % (mod).  --lch
+  */
+  result.remainder = (ficlInteger)(q - (result.quotient * y));
 
-ficl2UnsignedQR ficl2UnsignedDivide(ficl2Unsigned q, ficlUnsigned y)
-{
-    ficl2UnsignedQR result;
-
-    result.quotient = q / y;
-	/*
-	** Once we have the quotient, it's cheaper to calculate the
-	** remainder this way than with % (mod).  --lch
-	*/
-    result.remainder  = (ficlInteger)(q - (result.quotient * y));
-
-    return result;
+  return result;
 }
 
+#else /* FICL_PLATFORM_HAS_2INTEGER */
 
-#else  /* FICL_PLATFORM_HAS_2INTEGER */
-
-
-#define FICL_CELL_HIGH_BIT  ((uintmax_t)1 << (FICL_BITS_PER_CELL-1))
+#define FICL_CELL_HIGH_BIT ((uintmax_t)1 << (FICL_BITS_PER_CELL - 1))
 #define UMOD_SHIFT (FICL_BITS_PER_CELL / 2)
 #define UMOD_MASK ((1L << (FICL_BITS_PER_CELL / 2)) - 1)
-
 
 /**************************************************************************
                         ficl2IntegerIsNegative
 ** Returns TRUE if the specified ficl2Unsigned has its sign bit set.
 **************************************************************************/
-int ficl2IntegerIsNegative(ficl2Integer x)
-{
-    return (x.high < 0);
-}
-
+int ficl2IntegerIsNegative(ficl2Integer x) { return (x.high < 0); }
 
 /**************************************************************************
                         ficl2IntegerNegate
 ** Negates an ficl2Unsigned by complementing and incrementing.
 **************************************************************************/
-ficl2Integer ficl2IntegerNegate(ficl2Integer x)
-{
-    x.high = ~x.high;
-    x.low = ~x.low;
-    x.low ++;
-    if (x.low == 0)
-        x.high++;
+ficl2Integer ficl2IntegerNegate(ficl2Integer x) {
+  x.high = ~x.high;
+  x.low = ~x.low;
+  x.low++;
+  if (x.low == 0)
+    x.high++;
 
-    return x;
+  return x;
 }
 
 /**************************************************************************
                         ficl2UnsignedMultiplyAccumulate
 ** Mixed precision multiply and accumulate primitive for number building.
-** Multiplies ficl2Unsigned u by ficlUnsigned mul and adds ficlUnsigned add. Mul is typically
-** the numeric base, and add represents a digit to be appended to the 
-** growing number. 
+** Multiplies ficl2Unsigned u by ficlUnsigned mul and adds ficlUnsigned add. Mul
+is typically
+** the numeric base, and add represents a digit to be appended to the
+** growing number.
 ** Returns the result of the operation
 **************************************************************************/
-ficl2Unsigned ficl2UnsignedMultiplyAccumulate(ficl2Unsigned u, ficlUnsigned mul, ficlUnsigned add)
-{
-    ficl2Unsigned resultLo = ficl2UnsignedMultiply(u.low, mul);
-    ficl2Unsigned resultHi = ficl2UnsignedMultiply(u.high, mul);
-    resultLo.high += resultHi.low;
-    resultHi.low = resultLo.low + add;
+ficl2Unsigned ficl2UnsignedMultiplyAccumulate(ficl2Unsigned u, ficlUnsigned mul,
+                                              ficlUnsigned add) {
+  ficl2Unsigned resultLo = ficl2UnsignedMultiply(u.low, mul);
+  ficl2Unsigned resultHi = ficl2UnsignedMultiply(u.high, mul);
+  resultLo.high += resultHi.low;
+  resultHi.low = resultLo.low + add;
 
-    if (resultHi.low < resultLo.low)
-        resultLo.high++;
+  if (resultHi.low < resultLo.low)
+    resultLo.high++;
 
-    resultLo.low = resultHi.low;
+  resultLo.low = resultHi.low;
 
-    return resultLo;
+  return resultLo;
 }
-
 
 /**************************************************************************
                         ficl2IntegerMultiply
 ** Multiplies a pair of ficlIntegers and returns an ficl2Integer result.
 **************************************************************************/
-ficl2Integer ficl2IntegerMultiply(ficlInteger x, ficlInteger y)
-{
-    ficl2Unsigned prod;
-    int sign = 1;
+ficl2Integer ficl2IntegerMultiply(ficlInteger x, ficlInteger y) {
+  ficl2Unsigned prod;
+  int sign = 1;
 
-    if (x < 0)
-    {
-        sign = -sign;
-        x = -x;
-    }
+  if (x < 0) {
+    sign = -sign;
+    x = -x;
+  }
 
-    if (y < 0)
-    {
-        sign = -sign;
-        y = -y;
-    }
+  if (y < 0) {
+    sign = -sign;
+    y = -y;
+  }
 
-    prod = ficl2UnsignedMultiply(x, y);
-    if (sign > 0)
-        return FICL_2UNSIGNED_TO_2INTEGER(prod);
-    else
-        return ficl2IntegerNegate(FICL_2UNSIGNED_TO_2INTEGER(prod));
+  prod = ficl2UnsignedMultiply(x, y);
+  if (sign > 0)
+    return FICL_2UNSIGNED_TO_2INTEGER(prod);
+  else
+    return ficl2IntegerNegate(FICL_2UNSIGNED_TO_2INTEGER(prod));
 }
 
+ficl2Integer ficl2IntegerDecrement(ficl2Integer x) {
+  if (x.low == INT_MIN)
+    x.high--;
+  x.low--;
 
-
-ficl2Integer ficl2IntegerDecrement(ficl2Integer x)
-{
-	if (x.low == INT_MIN)
-		x.high--;
-	x.low--;
-
-	return x;
+  return x;
 }
 
+ficl2Unsigned ficl2UnsignedAdd(ficl2Unsigned x, ficl2Unsigned y) {
+  ficl2Unsigned result;
+  int carry;
 
-ficl2Unsigned ficl2UnsignedAdd(ficl2Unsigned x, ficl2Unsigned y)
-{
-    ficl2Unsigned result;
-    int carry;
-    
-    result.high = x.high + y.high;
-    result.low = x.low + y.low;
+  result.high = x.high + y.high;
+  result.low = x.low + y.low;
 
+  carry = ((x.low | y.low) & FICL_CELL_HIGH_BIT) &&
+          !(result.low & FICL_CELL_HIGH_BIT);
+  carry |= ((x.low & y.low) & FICL_CELL_HIGH_BIT);
 
-    carry  = ((x.low | y.low) & FICL_CELL_HIGH_BIT) && !(result.low & FICL_CELL_HIGH_BIT);
-    carry |= ((x.low & y.low) & FICL_CELL_HIGH_BIT);
+  if (carry) {
+    result.high++;
+  }
 
-    if (carry)
-    {
-        result.high++;
-    }
-
-    return result;
+  return result;
 }
 
 /**************************************************************************
                         ficl2UnsignedMultiply
 ** Contributed by:
-** Michael A. Gauland   gaulandm@mdhost.cse.tek.com  
+** Michael A. Gauland   gaulandm@mdhost.cse.tek.com
 **************************************************************************/
-ficl2Unsigned ficl2UnsignedMultiply(ficlUnsigned x, ficlUnsigned y)
-{
-    ficl2Unsigned result = { 0, 0 };
-    ficl2Unsigned addend;
-    
-    addend.low = y;
-    addend.high = 0; /* No sign extension--arguments are unsigned */
-    
-    while (x != 0) 
-    {
-        if ( x & 1) 
-        {
-            result = ficl2UnsignedAdd(result, addend);
-        }
-        x >>= 1;
-        addend = ficl2UnsignedArithmeticShiftLeft(addend);
+ficl2Unsigned ficl2UnsignedMultiply(ficlUnsigned x, ficlUnsigned y) {
+  ficl2Unsigned result = {0, 0};
+  ficl2Unsigned addend;
+
+  addend.low = y;
+  addend.high = 0; /* No sign extension--arguments are unsigned */
+
+  while (x != 0) {
+    if (x & 1) {
+      result = ficl2UnsignedAdd(result, addend);
     }
-    return result;
+    x >>= 1;
+    addend = ficl2UnsignedArithmeticShiftLeft(addend);
+  }
+  return result;
 }
-
-
 
 /**************************************************************************
                         ficl2UnsignedSubtract
-** 
+**
 **************************************************************************/
-ficl2Unsigned ficl2UnsignedSubtract(ficl2Unsigned x, ficl2Unsigned y)
-{
-    ficl2Unsigned result;
-    
-    result.high = x.high - y.high;
-    result.low = x.low - y.low;
+ficl2Unsigned ficl2UnsignedSubtract(ficl2Unsigned x, ficl2Unsigned y) {
+  ficl2Unsigned result;
 
-    if (x.low < y.low) 
-    {
-        result.high--;
-    }
+  result.high = x.high - y.high;
+  result.low = x.low - y.low;
 
-    return result;
+  if (x.low < y.low) {
+    result.high--;
+  }
+
+  return result;
 }
-
 
 /**************************************************************************
                         ficl2UnsignedArithmeticShiftLeft
 ** 64 bit left shift
 **************************************************************************/
-ficl2Unsigned ficl2UnsignedArithmeticShiftLeft( ficl2Unsigned x )
-{
-    ficl2Unsigned result;
-    
-    result.high = x.high << 1;
-    if (x.low & FICL_CELL_HIGH_BIT) 
-    {
-        result.high++;
-    }
+ficl2Unsigned ficl2UnsignedArithmeticShiftLeft(ficl2Unsigned x) {
+  ficl2Unsigned result;
 
-    result.low = x.low << 1;
+  result.high = x.high << 1;
+  if (x.low & FICL_CELL_HIGH_BIT) {
+    result.high++;
+  }
 
-    return result;
+  result.low = x.low << 1;
+
+  return result;
 }
-
 
 /**************************************************************************
                         ficl2UnsignedArithmeticShiftRight
 ** 64 bit right shift (unsigned - no sign extend)
 **************************************************************************/
-ficl2Unsigned ficl2UnsignedArithmeticShiftRight( ficl2Unsigned x )
-{
-    ficl2Unsigned result;
-    
-    result.low = x.low >> 1;
-    if (x.high & 1) 
-    {
-        result.low |= FICL_CELL_HIGH_BIT;
-    }
+ficl2Unsigned ficl2UnsignedArithmeticShiftRight(ficl2Unsigned x) {
+  ficl2Unsigned result;
 
-    result.high = x.high >> 1;
-    return result;
+  result.low = x.low >> 1;
+  if (x.high & 1) {
+    result.low |= FICL_CELL_HIGH_BIT;
+  }
+
+  result.high = x.high >> 1;
+  return result;
 }
-
 
 /**************************************************************************
                         ficl2UnsignedOr
 ** 64 bit bitwise OR
 **************************************************************************/
-ficl2Unsigned ficl2UnsignedOr( ficl2Unsigned x, ficl2Unsigned y )
-{
-    ficl2Unsigned result;
-    
-    result.high = x.high | y.high;
-    result.low = x.low | y.low;
-    
-    return result;
-}
+ficl2Unsigned ficl2UnsignedOr(ficl2Unsigned x, ficl2Unsigned y) {
+  ficl2Unsigned result;
 
+  result.high = x.high | y.high;
+  result.low = x.low | y.low;
+
+  return result;
+}
 
 /**************************************************************************
                         ficl2UnsignedCompare
 ** Return -1 if x < y; 0 if x==y, and 1 if x > y.
 **************************************************************************/
-int ficl2UnsignedCompare(ficl2Unsigned x, ficl2Unsigned y)
-{
-    if (x.high > y.high) 
-        return 1;
-    if (x.high < y.high) 
-        return -1;
+int ficl2UnsignedCompare(ficl2Unsigned x, ficl2Unsigned y) {
+  if (x.high > y.high)
+    return 1;
+  if (x.high < y.high)
+    return -1;
 
-	/* High parts are equal */
+  /* High parts are equal */
 
-    if (x.low > y.low) 
-        return 1;
-    else if (x.low < y.low) 
-        return -1;
-    
-    return 0;
+  if (x.low > y.low)
+    return 1;
+  else if (x.low < y.low)
+    return -1;
+
+  return 0;
 }
-
-
 
 /**************************************************************************
                         ficl2UnsignedDivide
 ** Portable versions of ficl2Multiply and ficl2Divide in C
 ** Contributed by:
-** Michael A. Gauland   gaulandm@mdhost.cse.tek.com  
+** Michael A. Gauland   gaulandm@mdhost.cse.tek.com
 **************************************************************************/
-ficl2UnsignedQR ficl2UnsignedDivide(ficl2Unsigned q, ficlUnsigned y)
-{
-    ficl2UnsignedQR result;
-    ficl2Unsigned quotient;
-    ficl2Unsigned subtrahend;
-    ficl2Unsigned mask;
+ficl2UnsignedQR ficl2UnsignedDivide(ficl2Unsigned q, ficlUnsigned y) {
+  ficl2UnsignedQR result;
+  ficl2Unsigned quotient;
+  ficl2Unsigned subtrahend;
+  ficl2Unsigned mask;
 
-    quotient.low = 0;
-    quotient.high = 0;
-    
-    subtrahend.low = y;
-    subtrahend.high = 0;
-    
-    mask.low = 1;
-    mask.high = 0;
-    
-    while ((ficl2UnsignedCompare(subtrahend, q) < 0) &&
-           (subtrahend.high & FICL_CELL_HIGH_BIT) == 0)
-    {
-        mask = ficl2UnsignedArithmeticShiftLeft(mask);
-        subtrahend = ficl2UnsignedArithmeticShiftLeft(subtrahend);
+  quotient.low = 0;
+  quotient.high = 0;
+
+  subtrahend.low = y;
+  subtrahend.high = 0;
+
+  mask.low = 1;
+  mask.high = 0;
+
+  while ((ficl2UnsignedCompare(subtrahend, q) < 0) &&
+         (subtrahend.high & FICL_CELL_HIGH_BIT) == 0) {
+    mask = ficl2UnsignedArithmeticShiftLeft(mask);
+    subtrahend = ficl2UnsignedArithmeticShiftLeft(subtrahend);
+  }
+
+  while (mask.low != 0 || mask.high != 0) {
+    if (ficl2UnsignedCompare(subtrahend, q) <= 0) {
+      q = ficl2UnsignedSubtract(q, subtrahend);
+      quotient = ficl2UnsignedOr(quotient, mask);
     }
-    
-    while (mask.low != 0 || mask.high != 0) 
-    {
-        if (ficl2UnsignedCompare(subtrahend, q) <= 0) 
-        {
-            q = ficl2UnsignedSubtract( q, subtrahend);
-            quotient = ficl2UnsignedOr(quotient, mask);
-        }
-        mask = ficl2UnsignedArithmeticShiftRight(mask);
-        subtrahend = ficl2UnsignedArithmeticShiftRight(subtrahend);
-    }
-    
-    result.quotient = quotient;
-    result.remainder = q.low;
-    return result;
+    mask = ficl2UnsignedArithmeticShiftRight(mask);
+    subtrahend = ficl2UnsignedArithmeticShiftRight(subtrahend);
+  }
+
+  result.quotient = quotient;
+  result.remainder = q.low;
+  return result;
 }
 
 #endif /* !FICL_PLATFORM_HAS_2INTEGER */
-
-
 
 /**************************************************************************
                         ficl2IntegerAbsoluteValue
 ** Returns the absolute value of an ficl2Unsigned
 **************************************************************************/
-ficl2Integer ficl2IntegerAbsoluteValue(ficl2Integer x)
-{
-    if (ficl2IntegerIsNegative(x))
-        return ficl2IntegerNegate(x);
-    return x;
+ficl2Integer ficl2IntegerAbsoluteValue(ficl2Integer x) {
+  if (ficl2IntegerIsNegative(x))
+    return ficl2IntegerNegate(x);
+  return x;
 }
-
 
 /**************************************************************************
                         ficl2IntegerDivideFloored
-** 
+**
 ** FROM THE FORTH ANS...
 ** Floored division is integer division in which the remainder carries
 ** the sign of the divisor or is zero, and the quotient is rounded to
 ** its arithmetic floor. Symmetric division is integer division in which
 ** the remainder carries the sign of the dividend or is zero and the
 ** quotient is the mathematical quotient rounded towards zero or
-** truncated. Examples of each are shown in tables 3.3 and 3.4. 
-** 
+** truncated. Examples of each are shown in tables 3.3 and 3.4.
+**
 ** Table 3.3 - Floored Division Example
 ** Dividend        Divisor Remainder       Quotient
 ** --------        ------- ---------       --------
@@ -388,8 +340,8 @@ ficl2Integer ficl2IntegerAbsoluteValue(ficl2Integer x)
 ** -10                7       4               -2
 **  10               -7      -4               -2
 ** -10               -7      -3                1
-** 
-** 
+**
+**
 ** Table 3.4 - Symmetric Division Example
 ** Dividend        Divisor Remainder       Quotient
 ** --------        ------- ---------       --------
@@ -398,82 +350,71 @@ ficl2Integer ficl2IntegerAbsoluteValue(ficl2Integer x)
 **  10               -7       3               -1
 ** -10               -7      -3                1
 **************************************************************************/
-ficl2IntegerQR ficl2IntegerDivideFloored(ficl2Integer num, ficlInteger den)
-{
-    ficl2IntegerQR qr;
-    ficl2UnsignedQR uqr;
-    int signRem = 1;
-    int signQuot = 1;
+ficl2IntegerQR ficl2IntegerDivideFloored(ficl2Integer num, ficlInteger den) {
+  ficl2IntegerQR qr;
+  ficl2UnsignedQR uqr;
+  int signRem = 1;
+  int signQuot = 1;
 
-    if (ficl2IntegerIsNegative(num))
-    {
-        num = ficl2IntegerNegate(num);
-        signQuot = -signQuot;
+  if (ficl2IntegerIsNegative(num)) {
+    num = ficl2IntegerNegate(num);
+    signQuot = -signQuot;
+  }
+
+  if (den < 0) {
+    den = -den;
+    signRem = -signRem;
+    signQuot = -signQuot;
+  }
+
+  uqr = ficl2UnsignedDivide(FICL_2INTEGER_TO_2UNSIGNED(num), (ficlUnsigned)den);
+  qr = FICL_2UNSIGNEDQR_TO_2INTEGERQR(uqr);
+  if (signQuot < 0) {
+    qr.quotient = ficl2IntegerNegate(qr.quotient);
+    if (qr.remainder != 0) {
+      qr.quotient = ficl2IntegerDecrement(qr.quotient);
+      qr.remainder = den - qr.remainder;
     }
+  }
 
-    if (den < 0)
-    {
-        den      = -den;
-        signRem  = -signRem;
-        signQuot = -signQuot;
-    }
+  if (signRem < 0)
+    qr.remainder = -qr.remainder;
 
-    uqr = ficl2UnsignedDivide(FICL_2INTEGER_TO_2UNSIGNED(num), (ficlUnsigned)den);
-    qr = FICL_2UNSIGNEDQR_TO_2INTEGERQR(uqr);
-    if (signQuot < 0)
-    {
-        qr.quotient = ficl2IntegerNegate(qr.quotient);
-        if (qr.remainder != 0)
-        {
-            qr.quotient = ficl2IntegerDecrement(qr.quotient);
-            qr.remainder = den - qr.remainder;
-        }
-    }
-
-    if (signRem < 0)
-        qr.remainder = -qr.remainder;
-
-    return qr;
+  return qr;
 }
-
-
 
 /**************************************************************************
                         ficl2IntegerDivideSymmetric
-** Divide an ficl2Unsigned by a ficlInteger and return a ficlInteger quotient and a
+** Divide an ficl2Unsigned by a ficlInteger and return a ficlInteger quotient
+and a
 ** ficlInteger remainder. The absolute values of quotient and remainder are not
 ** affected by the signs of the numerator and denominator (the operation
 ** is symmetric on the number line)
 **************************************************************************/
-ficl2IntegerQR ficl2IntegerDivideSymmetric(ficl2Integer num, ficlInteger den)
-{
-    ficl2IntegerQR qr;
-    ficl2UnsignedQR uqr;
-    int signRem = 1;
-    int signQuot = 1;
+ficl2IntegerQR ficl2IntegerDivideSymmetric(ficl2Integer num, ficlInteger den) {
+  ficl2IntegerQR qr;
+  ficl2UnsignedQR uqr;
+  int signRem = 1;
+  int signQuot = 1;
 
-    if (ficl2IntegerIsNegative(num))
-    {
-        num = ficl2IntegerNegate(num);
-        signRem  = -signRem;
-        signQuot = -signQuot;
-    }
+  if (ficl2IntegerIsNegative(num)) {
+    num = ficl2IntegerNegate(num);
+    signRem = -signRem;
+    signQuot = -signQuot;
+  }
 
-    if (den < 0)
-    {
-        den      = -den;
-        signQuot = -signQuot;
-    }
+  if (den < 0) {
+    den = -den;
+    signQuot = -signQuot;
+  }
 
-    uqr = ficl2UnsignedDivide(FICL_2INTEGER_TO_2UNSIGNED(num), (ficlUnsigned)den);
-    qr = FICL_2UNSIGNEDQR_TO_2INTEGERQR(uqr);
-    if (signRem < 0)
-        qr.remainder = -qr.remainder;
+  uqr = ficl2UnsignedDivide(FICL_2INTEGER_TO_2UNSIGNED(num), (ficlUnsigned)den);
+  qr = FICL_2UNSIGNEDQR_TO_2INTEGERQR(uqr);
+  if (signRem < 0)
+    qr.remainder = -qr.remainder;
 
-    if (signQuot < 0)
-        qr.quotient = ficl2IntegerNegate(qr.quotient);
+  if (signQuot < 0)
+    qr.quotient = ficl2IntegerNegate(qr.quotient);
 
-    return qr;
+  return qr;
 }
-
-

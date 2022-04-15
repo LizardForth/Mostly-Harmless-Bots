@@ -17,7 +17,7 @@
 ** contact me by email at the address above.
 **
 ** L I C E N S E  and  D I S C L A I M E R
-** 
+**
 ** Redistribution and use in source and binary forms, with or without
 ** modification, are permitted provided that the following conditions
 ** are met:
@@ -70,114 +70,95 @@
 void ficlStackCheck(ficlStack *stack, int popCells, int pushCells)
 #if FICL_ROBUST >= 1
 {
-    int nFree = stack->size - STKDEPTH(stack);
+  int nFree = stack->size - STKDEPTH(stack);
 
-    if (popCells > STKDEPTH(stack))
-    {
-        ficlVmThrowError(stack->vm, "Error: %s stack underflow", stack->name);
-    }
+  if (popCells > STKDEPTH(stack)) {
+    ficlVmThrowError(stack->vm, "Error: %s stack underflow", stack->name);
+  }
 
-    if (nFree < pushCells - popCells)
-    {
-        ficlVmThrowError(stack->vm, "Error: %s stack overflow", stack->name);
-    }
+  if (nFree < pushCells - popCells) {
+    ficlVmThrowError(stack->vm, "Error: %s stack overflow", stack->name);
+  }
 
-    return;
+  return;
 }
-#else /* FICL_ROBUST >= 1 */
+#else  /* FICL_ROBUST >= 1 */
 {
-	FICL_IGNORE(stack);
-	FICL_IGNORE(popCells);
-	FICL_IGNORE(pushCells);
+  FICL_IGNORE(stack);
+  FICL_IGNORE(popCells);
+  FICL_IGNORE(pushCells);
 }
 #endif /* FICL_ROBUST >= 1 */
 
 /*******************************************************************
                     s t a c k C r e a t e
-** 
+**
 *******************************************************************/
 
-ficlStack *ficlStackCreate(ficlVm *vm, char *name, unsigned size)
-{
-    size_t totalSize = sizeof (ficlStack) + (size * sizeof (ficlCell));
-    ficlStack *stack = ficlMalloc(totalSize);
+ficlStack *ficlStackCreate(ficlVm *vm, char *name, unsigned size) {
+  size_t totalSize = sizeof(ficlStack) + (size * sizeof(ficlCell));
+  ficlStack *stack = ficlMalloc(totalSize);
 
-    FICL_VM_ASSERT(vm, size != 0);
-    FICL_VM_ASSERT(vm, stack != NULL);
+  FICL_VM_ASSERT(vm, size != 0);
+  FICL_VM_ASSERT(vm, stack != NULL);
 
-    stack->size = size;
-    stack->frame = NULL;
+  stack->size = size;
+  stack->frame = NULL;
 
-	stack->vm = vm;
-	stack->name = name;
+  stack->vm = vm;
+  stack->name = name;
 
-	ficlStackReset(stack);
-    return stack;
+  ficlStackReset(stack);
+  return stack;
 }
-
 
 /*******************************************************************
                     s t a c k D e l e t e
-** 
+**
 *******************************************************************/
 
-void ficlStackDestroy(ficlStack *stack)
-{
-    if (stack)
-        ficlFree(stack);
-    return;
+void ficlStackDestroy(ficlStack *stack) {
+  if (stack)
+    ficlFree(stack);
+  return;
 }
-
 
 /*******************************************************************
-                    s t a c k D e p t h 
-** 
+                    s t a c k D e p t h
+**
 *******************************************************************/
 
-int ficlStackDepth(ficlStack *stack)
-{
-    return STKDEPTH(stack);
-}
+int ficlStackDepth(ficlStack *stack) { return STKDEPTH(stack); }
 
 /*******************************************************************
                     s t a c k D r o p
-** 
+**
 *******************************************************************/
 
-void ficlStackDrop(ficlStack *stack, int n)
-{
-    FICL_VM_ASSERT(stack->vm, n > 0);
-    stack->top -= n;
-    return;
+void ficlStackDrop(ficlStack *stack, int n) {
+  FICL_VM_ASSERT(stack->vm, n > 0);
+  stack->top -= n;
+  return;
 }
-
 
 /*******************************************************************
                     s t a c k F e t c h
-** 
+**
 *******************************************************************/
 
-ficlCell ficlStackFetch(ficlStack *stack, int n)
-{
-    return stack->top[-n];
-}
+ficlCell ficlStackFetch(ficlStack *stack, int n) { return stack->top[-n]; }
 
-void ficlStackStore(ficlStack *stack, int n, ficlCell c)
-{
-    stack->top[-n] = c;
-    return;
+void ficlStackStore(ficlStack *stack, int n, ficlCell c) {
+  stack->top[-n] = c;
+  return;
 }
-
 
 /*******************************************************************
                     s t a c k G e t T o p
-** 
+**
 *******************************************************************/
 
-ficlCell ficlStackGetTop(ficlStack *stack)
-{
-    return stack->top[0];
-}
+ficlCell ficlStackGetTop(ficlStack *stack) { return stack->top[0]; }
 
 #if FICL_WANT_LOCALS
 
@@ -190,14 +171,12 @@ ficlCell ficlStackGetTop(ficlStack *stack)
 ** 3) top += size
 *******************************************************************/
 
-void ficlStackLink(ficlStack *stack, int size)
-{
-    ficlStackPushPointer(stack, stack->frame);
-    stack->frame = stack->top + 1;
-    stack->top += size;
-    return;
+void ficlStackLink(ficlStack *stack, int size) {
+  ficlStackPushPointer(stack, stack->frame);
+  stack->frame = stack->top + 1;
+  stack->top += size;
+  return;
 }
-
 
 /*******************************************************************
                     s t a c k U n l i n k
@@ -206,211 +185,164 @@ void ficlStackLink(ficlStack *stack, int size)
 ** 2) frame = pop()
 *******************************************************************/
 
-void ficlStackUnlink(ficlStack *stack)
-{
-    stack->top = stack->frame - 1;
-    stack->frame = ficlStackPopPointer(stack);
-    return;
+void ficlStackUnlink(ficlStack *stack) {
+  stack->top = stack->frame - 1;
+  stack->frame = ficlStackPopPointer(stack);
+  return;
 }
 #endif /* FICL_WANT_LOCALS */
 
-
 /*******************************************************************
                     s t a c k P i c k
-** 
+**
 *******************************************************************/
 
-void ficlStackPick(ficlStack *stack, int n)
-{
-    ficlStackPush(stack, ficlStackFetch(stack, n));
-    return;
+void ficlStackPick(ficlStack *stack, int n) {
+  ficlStackPush(stack, ficlStackFetch(stack, n));
+  return;
 }
-
 
 /*******************************************************************
                     s t a c k P o p
-** 
+**
 *******************************************************************/
 
-ficlCell ficlStackPop(ficlStack *stack)
-{
-    return *stack->top--;
+ficlCell ficlStackPop(ficlStack *stack) { return *stack->top--; }
+
+void *ficlStackPopPointer(ficlStack *stack) { return (*stack->top--).p; }
+
+ficlUnsigned ficlStackPopUnsigned(ficlStack *stack) {
+  return (*stack->top--).u;
 }
 
-void *ficlStackPopPointer(ficlStack *stack)
-{
-    return (*stack->top--).p;
+ficlInteger ficlStackPopInteger(ficlStack *stack) { return (*stack->top--).i; }
+
+ficl2Integer ficlStackPop2Integer(ficlStack *stack) {
+  ficl2Integer ret;
+  ficlInteger high = ficlStackPopInteger(stack);
+  ficlInteger low = ficlStackPopInteger(stack);
+  FICL_2INTEGER_SET(high, low, ret);
+  return ret;
 }
 
-ficlUnsigned ficlStackPopUnsigned(ficlStack *stack)
-{
-    return (*stack->top--).u;
+ficl2Unsigned ficlStackPop2Unsigned(ficlStack *stack) {
+  ficl2Unsigned ret;
+  ficlUnsigned high = ficlStackPopUnsigned(stack);
+  ficlUnsigned low = ficlStackPopUnsigned(stack);
+  FICL_2UNSIGNED_SET(high, low, ret);
+  return ret;
 }
-
-ficlInteger ficlStackPopInteger(ficlStack *stack)
-{
-    return (*stack->top--).i;
-}
-
-ficl2Integer ficlStackPop2Integer(ficlStack *stack)
-{
-    ficl2Integer ret;
-    ficlInteger high = ficlStackPopInteger(stack);
-    ficlInteger low = ficlStackPopInteger(stack);
-	FICL_2INTEGER_SET(high, low, ret);
-    return ret;
-}
-
-ficl2Unsigned ficlStackPop2Unsigned(ficlStack *stack)
-{
-    ficl2Unsigned ret;
-    ficlUnsigned high = ficlStackPopUnsigned(stack);
-    ficlUnsigned low = ficlStackPopUnsigned(stack);
-	FICL_2UNSIGNED_SET(high, low, ret);
-    return ret;
-}
-
 
 #if (FICL_WANT_FLOAT)
-ficlFloat ficlStackPopFloat(ficlStack *stack)
-{
-    return (*stack->top--).f;
-}
+ficlFloat ficlStackPopFloat(ficlStack *stack) { return (*stack->top--).f; }
 #endif
-
 
 /*******************************************************************
                     s t a c k P u s h
-** 
+**
 *******************************************************************/
 
-void ficlStackPush(ficlStack *stack, ficlCell c)
-{
-    *++stack->top = c;
+void ficlStackPush(ficlStack *stack, ficlCell c) { *++stack->top = c; }
+
+void ficlStackPushPointer(ficlStack *stack, void *ptr) {
+  *++stack->top = FICL_LVALUE_TO_CELL(ptr);
 }
 
-void ficlStackPushPointer(ficlStack *stack, void *ptr)
-{
-    *++stack->top = FICL_LVALUE_TO_CELL(ptr);
+void ficlStackPushInteger(ficlStack *stack, ficlInteger i) {
+  *++stack->top = FICL_LVALUE_TO_CELL(i);
 }
 
-void ficlStackPushInteger(ficlStack *stack, ficlInteger i)
-{
-    *++stack->top = FICL_LVALUE_TO_CELL(i);
+void ficlStackPushUnsigned(ficlStack *stack, ficlUnsigned u) {
+  *++stack->top = FICL_LVALUE_TO_CELL(u);
 }
 
-void ficlStackPushUnsigned(ficlStack *stack, ficlUnsigned u)
-{
-    *++stack->top = FICL_LVALUE_TO_CELL(u);
+void ficlStackPush2Unsigned(ficlStack *stack, ficl2Unsigned du) {
+  ficlStackPushUnsigned(stack, FICL_2UNSIGNED_GET_LOW(du));
+  ficlStackPushUnsigned(stack, FICL_2UNSIGNED_GET_HIGH(du));
+  return;
 }
 
-void  ficlStackPush2Unsigned(ficlStack *stack, ficl2Unsigned du)
-{
-    ficlStackPushUnsigned(stack, FICL_2UNSIGNED_GET_LOW(du));
-    ficlStackPushUnsigned(stack, FICL_2UNSIGNED_GET_HIGH(du));
-    return;
-}
-
-void  ficlStackPush2Integer(ficlStack *stack, ficl2Integer di)
-{
-	ficlStackPush2Unsigned(stack, FICL_2INTEGER_TO_2UNSIGNED(di));
-    return;
+void ficlStackPush2Integer(ficlStack *stack, ficl2Integer di) {
+  ficlStackPush2Unsigned(stack, FICL_2INTEGER_TO_2UNSIGNED(di));
+  return;
 }
 
 #if (FICL_WANT_FLOAT)
-void ficlStackPushFloat(ficlStack *stack, ficlFloat f)
-{
-    *++stack->top = FICL_LVALUE_TO_CELL(f);
+void ficlStackPushFloat(ficlStack *stack, ficlFloat f) {
+  *++stack->top = FICL_LVALUE_TO_CELL(f);
 }
 #endif
 
-
 /*******************************************************************
                     s t a c k R e s e t
-** 
+**
 *******************************************************************/
 
-void ficlStackReset(ficlStack *stack)
-{
-    stack->top = stack->base - 1;
-    return;
+void ficlStackReset(ficlStack *stack) {
+  stack->top = stack->base - 1;
+  return;
 }
 
-
 /*******************************************************************
-                    s t a c k R o l l 
-** Roll nth stack entry to the top (counting from zero), if n is 
+                    s t a c k R o l l
+** Roll nth stack entry to the top (counting from zero), if n is
 ** >= 0. Drop other entries as needed to fill the hole.
 ** If n < 0, roll top-of-stack to nth entry, pushing others
 ** upward as needed to fill the hole.
 *******************************************************************/
 
-void ficlStackRoll(ficlStack *stack, int n)
-{
-    ficlCell c;
-    ficlCell *cell;
+void ficlStackRoll(ficlStack *stack, int n) {
+  ficlCell c;
+  ficlCell *cell;
 
-    if (n == 0)
-        return;
-    else if (n > 0)
-    {
-        cell = stack->top - n;
-        c = *cell;
-
-        for (;n > 0; --n, cell++)
-        {
-            *cell = cell[1];
-        }
-
-        *cell = c;
-    }
-    else
-    {
-        cell = stack->top;
-        c = *cell;
-
-        for (; n < 0; ++n, cell--)
-        {
-            *cell = cell[-1];
-        }
-
-        *cell = c;
-    }
+  if (n == 0)
     return;
-}
+  else if (n > 0) {
+    cell = stack->top - n;
+    c = *cell;
 
+    for (; n > 0; --n, cell++) {
+      *cell = cell[1];
+    }
+
+    *cell = c;
+  } else {
+    cell = stack->top;
+    c = *cell;
+
+    for (; n < 0; ++n, cell--) {
+      *cell = cell[-1];
+    }
+
+    *cell = c;
+  }
+  return;
+}
 
 /*******************************************************************
                     s t a c k S e t T o p
-** 
+**
 *******************************************************************/
 
-void ficlStackSetTop(ficlStack *stack, ficlCell c)
-{
-    FICL_STACK_CHECK(stack, 1, 1);
-    stack->top[0] = c;
-    return;
+void ficlStackSetTop(ficlStack *stack, ficlCell c) {
+  FICL_STACK_CHECK(stack, 1, 1);
+  stack->top[0] = c;
+  return;
 }
 
+void ficlStackWalk(ficlStack *stack, ficlStackWalkFunction callback,
+                   void *context, ficlInteger bottomToTop) {
+  int i;
+  int depth;
+  ficlCell *cell;
+  FICL_STACK_CHECK(stack, 0, 0);
 
-
-
-void ficlStackWalk(ficlStack *stack, ficlStackWalkFunction callback, void *context, ficlInteger bottomToTop)
-{
-    int i;
-    int depth;
-	ficlCell *cell;
-    FICL_STACK_CHECK(stack, 0, 0);
-
-	depth = ficlStackDepth(stack);
-	cell = bottomToTop ? stack->base : stack->top;
-    for (i = 0; i < depth; i++)
-    {
-        if (callback(context, cell) == FICL_FALSE)
-			break;
-        cell += bottomToTop ? 1 : -1;
-    }
-    return;
+  depth = ficlStackDepth(stack);
+  cell = bottomToTop ? stack->base : stack->top;
+  for (i = 0; i < depth; i++) {
+    if (callback(context, cell) == FICL_FALSE)
+      break;
+    cell += bottomToTop ? 1 : -1;
+  }
+  return;
 }
-
-
