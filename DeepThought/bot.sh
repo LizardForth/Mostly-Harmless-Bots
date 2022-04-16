@@ -14,7 +14,7 @@ case $OS in
 		git fetch origin
                 git reset --hard origin/main
 		make -f Makefile.bsd clean 
-		make -f Makefile.bsd -j$(nproc)
+		make -f Makefile.bsd -j4
 		export LD_LIBRARY_PATH=/usr/pkg/lib
 		./bot
 		;;
