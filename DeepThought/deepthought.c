@@ -25,9 +25,9 @@ static void disRestart(ficlVm *vm) { raise(SIGINT); }
 static void disSpecs(
     ficlVm *vm) { // This function is just going to be hard coded I can't be
                   // bothered to dynamically pull system info for each os
-#ifdef _linux
+#ifdef __linux__
   ficlVmTextOut(vm, "OS: Linux");
-#elif _NetBSD
+#elif __NetBSD__
   ficlVmTextOut(vm, "OS: NetBSD");
   ficlVmTextOut(vm, "RAM: 4GB");
   ficlVmTextOut(vm, "CPU: BCM2711");
