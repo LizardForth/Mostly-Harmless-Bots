@@ -28,9 +28,9 @@ static void disSpecs(
 #ifdef __linux__
   ficlVmTextOut(vm, "OS: Linux");
 #elif __NetBSD__
-  ficlVmTextOut(vm, "OS: NetBSD");
-  ficlVmTextOut(vm, "RAM: 4GB");
-  ficlVmTextOut(vm, "CPU: BCM2711");
+  ficlVmTextOut(vm, "OS: NetBSD\n");
+  ficlVmTextOut(vm, "RAM: 4GB\n");
+  ficlVmTextOut(vm, "CPU: BCM2711\n");
   ficlVmTextOut(vm, "SYS: Raspberry Pi 4");
 #else
   ficlVmTextOut(vm, "OS: Other");
