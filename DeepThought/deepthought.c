@@ -561,9 +561,9 @@ void on_message(struct discord *client, const struct discord_message *msg) {
              prep);
     free(prep);
   }
-  
+
   char *forth_in = (char *)malloc(strlen(command) + 9);
-  
+
   log_info("Parsed: %s", command);
 
   struct forth_args *forth_args_in =
