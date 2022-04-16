@@ -196,7 +196,7 @@ extern "C" {
 #define FICL_WANT_FILE             (0)
 #define FICL_WANT_FLOAT            (1)
 #define FICL_WANT_USER             (1)
-#define FICL_WANT_LOCALS           (0)
+#define FICL_WANT_LOCALS           (1)
 #define FICL_WANT_DEBUGGER         (1)
 #define FICL_WANT_OOP              (0)
 #define FICL_WANT_PLATFORM         (0)
