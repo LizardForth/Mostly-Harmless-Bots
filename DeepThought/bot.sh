@@ -12,8 +12,10 @@ case $OS in
 	'NetBSD')
 		git fetch origin
                 git reset --hard origin/main
-		export LD_LIBRARY_PATH=/usr/pkg/lib
 		make -f Makefile.bsd 
+		export LD_LIBRARY_PATH=/usr/pkg/lib
+		make -f Makefile.bsd clean
+		make -f Makefile.bsd clean
 		./bot
 		;;
 esac	

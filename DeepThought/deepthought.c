@@ -587,7 +587,6 @@ int main(void) {
   pthread_cond_init(&forthCond, NULL);
 
   fth_system = ficlSystemCreate(NULL);
-  ficlSystemCompileExtras(fth_system);
 
   fptr = fopen("token.txt", "r");
   fscanf(fptr, "%[^\n]", token);
