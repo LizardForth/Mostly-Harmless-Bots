@@ -557,7 +557,7 @@ void on_message(struct discord *client, const struct discord_message *msg) {
     char *addon = ": TEST .\" TEST\" ; ";
     char *prep = strdup(command);
     command = (char *)realloc(command, strlen(command) + strlen(addon) + 2);
-    snprintf(command, strlen(command) + strlen(addon) + 2, "%s %s", addon,
+    snprintf(command, strlen(command) + strlen(addon) + 1, "%s %s", addon,
              prep);
     free(prep);
   }
