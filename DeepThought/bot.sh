@@ -1,6 +1,7 @@
 #!/bin/bash
 while true
-do 
+do 	
+	git checkout -- .
 	make clean
 	make 
 	./bot
