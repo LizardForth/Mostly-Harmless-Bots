@@ -542,13 +542,12 @@ void on_message(struct discord *client, const struct discord_message *msg) {
     return;
   }
 
-  char *command = (char *)malloc(strlen(msg->content) + 4);
+  char *command = (char *)malloc(strlen(msg->content));
 
   strncpy(command, msg->content, strlen(msg->content) - 4);
   int fth_rc;
 
   char *command_old = (char *)malloc(strlen(command) + 1);
-  char *forth_in = (char *)malloc(strlen(command) + 9);
 
   strncpy(command_old, command, strlen(command));
 
@@ -562,7 +561,9 @@ void on_message(struct discord *client, const struct discord_message *msg) {
              prep);
     free(prep);
   }
-
+  
+  char *forth_in = (char *)malloc(strlen(command) + 9);
+  
   log_info("Parsed: %s", command);
 
   struct forth_args *forth_args_in =
