@@ -22,6 +22,21 @@ pthread_cond_t forthCond = PTHREAD_COND_INITIALIZER;
 
 static void disRestart(ficlVm *vm) { raise(SIGINT); }
 
+static void disSpecs(ficlVm *vm) { // This function is just going to be hard coded I can't be bothered to dynamically pull system info for each os
+#ifdef _linux 
+  ficlVmTextOut(vm, "OS: Linux"); 
+#elif _NetBSD
+  ficlVmTextOut(vm, "OS: NetBSD");
+  ficlVmTextOut(vm, "RAM: 4GB");
+  ficlVmTextOut(vm, "CPU: BCM2711");
+  ficlVmTextOut(vm, "SYS: Raspberry Pi 4");
+#else
+  ficlVmTextOut(vm, "OS: Other");
+#endif
+  
+}
+
+
 void on_ready(struct discord *client) {
   const struct discord_user *bot = discord_get_self(client);
   log_info("Logged in as %s!", bot->username);
@@ -447,12 +462,13 @@ void *forth_execute(void *input) {
   log_info("Starting forth thread");
   ficlVm *vm;
   vm = ficlSystemCreateVm(fth_system);
+  ficlDictionary *dictionary = ficlVmGetDictionary(vm);
   if (((struct forth_args *)input)->pfx == 2 ||
       ((struct forth_args *)input)->pfx == 3) {
-    ficlDictionary *dictionary = ficlVmGetDictionary(vm);
     ficlDictionarySetPrimitive(dictionary, "restart", disRestart,
                                FICL_WORD_DEFAULT);
   }
+  ficlDictionarySetPrimitive(dictionary, "specs", disSpecs, FICL_WORD_DEFAULT);
   log_info("Recieved: %s", ((struct forth_args *)input)->command);
   fflush(stdout);
   freopen("/dev/null", "a", stdout);
