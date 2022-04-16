@@ -188,16 +188,16 @@ extern "C" {
 ** If set to nonzero, build the smallest possible Ficl interpreter.
 */
 #if !defined(FICL_WANT_MINIMAL)
-#define FICL_WANT_MINIMAL          (0)
+#define FICL_WANT_MINIMAL          (1)
 #endif
 
 #if FICL_WANT_MINIMAL
 #define FICL_WANT_SOFTWORDS        (0)
 #define FICL_WANT_FILE             (0)
-#define FICL_WANT_FLOAT            (0)
-#define FICL_WANT_USER             (0)
+#define FICL_WANT_FLOAT            (1)
+#define FICL_WANT_USER             (1)
 #define FICL_WANT_LOCALS           (0)
-#define FICL_WANT_DEBUGGER         (0)
+#define FICL_WANT_DEBUGGER         (1)
 #define FICL_WANT_OOP              (0)
 #define FICL_WANT_PLATFORM         (0)
 #define FICL_WANT_MULTITHREADED    (0)
