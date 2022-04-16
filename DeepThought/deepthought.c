@@ -31,7 +31,7 @@ static void disSpecs(
   ficlVmTextOut(vm, "OS: NetBSD\n");
   ficlVmTextOut(vm, "RAM: 4GB\n");
   ficlVmTextOut(vm, "CPU: BCM2711\n");
-  ficlVmTextOut(vm, "SYS: Raspberry Pi 4");
+  ficlVmTextOut(vm, "SYS: Raspberry Pi 4\n");
 #else
   ficlVmTextOut(vm, "OS: Other");
 #endif
