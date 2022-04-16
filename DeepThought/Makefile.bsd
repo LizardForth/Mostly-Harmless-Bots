@@ -5,7 +5,7 @@ HEADERS= ficl.h ficlplatform/unix.h
 #TARGET= -Dlinux  # riscos MOTO_CPU32 
 SHFLAGS = -fPIC
 CFLAGS= -O $(SHFLAGS) -Wall
-CPPFLAGS= $(TARGET) -I. -I/usr/pkg/include
+CPPFLAGS= $(TARGET) -I. -I/usr/pkg/include 
 CC = cc
 LIB = ar cr
 RANLIB = ranlib
@@ -31,11 +31,11 @@ libficl.so.$(MAJOR).$(MINOR): $(OBJECTS)
 	ln -sf libficl.so.$(MAJOR).$(MINOR) libficl.so
 
 main: main.o ficl.h sysdep.h libficl.so.$(MAJOR).$(MINOR)
-	$(CC) $(CFLAGS) $(LDFLAGS) marvin.o -o overlord -L. -lficl -lm -lcurl -ldiscord -lpthread
+	$(CC) $(CFLAGS) $(LDFLAGS) marvin.o -o overlord -L. -L/usr/pkg/lib -lficl -lm -lcurl -ldiscord -lpthread
 	ln -sf libficl.so.$(MAJOR).$(MINOR) libficl.so.$(MAJOR)
 
 deepthought: deepthought.o ficl.h sysdep.h libficl.so.$(MAJOR).$(MINOR)
-	$(CC) $(CFLAGS) $(LDFLAGS) marvin.o -o overlord -L. -lficl -lm -ldiscord -lcurl -lpthread
+	$(CC) $(CFLAGS) $(LDFLAGS) marvin.o -o overlord -L. -L/usr/pkg/lib -lficl -lm -ldiscord -lcurl -lpthread
 	ln -sf libficl.so.$(MAJOR).$(MINOR) libficl.so.$(MAJOR)
         
 # depend explicitly to help finding source files in another subdirectory,

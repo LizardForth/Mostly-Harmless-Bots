@@ -4,13 +4,16 @@ do
 OS="`uname`"
 case $OS in
 	'Linux')
-		git checkout -- . 
+		git fetch origin
+		git reset --hard origin/main
  		make 
 		./bot
 		;;
 	'NetBSD')
-		git checkout -- .
-		gmake -g Makefile.bsd 
+		git fetch origin
+                git reset --hard origin/main
+		export LD_LIBRARY_PATH=/usr/pkg/lib
+		make -f Makefile.bsd 
 		./bot
 		;;
 esac	
