@@ -15,7 +15,7 @@ case $OS in
 		make -f Makefile.bsd 
 		export LD_LIBRARY_PATH=/usr/pkg/lib
 		make -f Makefile.bsd clean
-		make -f Makefile.bsd clean
+		make -f Makefile.bsd 
 		./bot
 		;;
 esac	
