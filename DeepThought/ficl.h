@@ -252,7 +252,7 @@ extern "C" {
 ** Contributed by Larry Hastings.
 */
 #if !defined (FICL_WANT_LZ_SOFTCORE)
-#define FICL_WANT_LZ_SOFTCORE (1)
+#define FICL_WANT_LZ_SOFTCORE (0)
 #endif /* FICL_WANT_LZ_SOFTCORE */
 
 
@@ -263,7 +263,7 @@ extern "C" {
 ** Contributed by Larry Hastings
 */
 #if !defined (FICL_WANT_FILE)
-#define FICL_WANT_FILE (1)
+#define FICL_WANT_FILE (0)
 #endif /* FICL_WANT_FILE */
 
 /*
@@ -309,7 +309,7 @@ extern "C" {
 ** and a private dictionary for local variable compilation.
 */
 #if !defined FICL_WANT_LOCALS
-#define FICL_WANT_LOCALS (1)
+#define FICL_WANT_LOCALS (0)
 #endif /* FICL_WANT_LOCALS */
 
 /*
@@ -318,7 +318,7 @@ extern "C" {
 ** OOP support requires locals and user variables!
 */
 #if !defined (FICL_WANT_OOP)
-#define FICL_WANT_OOP ((FICL_WANT_LOCALS) && (FICL_WANT_USER))
+#define FICL_WANT_OOP (0)
 #endif /* FICL_WANT_OOP */
 
 /*
@@ -326,7 +326,7 @@ extern "C" {
 ** Controls inclusion of all softwords in softcore.c.
 */
 #if !defined (FICL_WANT_SOFTWORDS)
-#define FICL_WANT_SOFTWORDS (1)
+#define FICL_WANT_SOFTWORDS (0)
 #endif /* FICL_WANT_SOFTWORDS */
 
 /*
