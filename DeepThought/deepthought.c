@@ -136,11 +136,17 @@ int getPrefix(struct discord *client, const struct discord_message *msg,
   snprintf(access, strlen(forth_in) + 9, "``` %s ```", forth_in);
   if (ends_in_string(msg->content, "!FTH") ||
       ends_in_string(msg->content, "!ADM") ||
-      ends_in_string(msg->content, "!CMD")) {
-    if (ends_in_string(msg->content, "!FTH")) {
+      ends_in_string(msg->content, "!CMD") ||
+      ends_in_string(msg->content, "!fth") ||
+      ends_in_string(msg->content, "!adm") ||
+      ends_in_string(msg->content, "!cmd")) {
+    if (ends_in_string(msg->content, "!FTH") ||
+        ends_in_string(msg->content, "!fth")) {
       pfx = 1;
     } else if (ends_in_string(msg->content, "!ADM") ||
-               ends_in_string(msg->content, "!CMD")) {
+               ends_in_string(msg->content, "!CMD") ||
+               ends_in_string(msg->content, "!adm") ||
+               ends_in_string(msg->content, "!cmd")) {
       for (int i = 0; i < msg->member->roles->size; i++) {
         if (msg->member->roles->array[i] == 953785894656147566) {
           log_info("Admin is Executing");
@@ -152,7 +158,8 @@ int getPrefix(struct discord *client, const struct discord_message *msg,
         return 0;
       }
 
-      if (ends_in_string(msg->content, "!ADM")) {
+      if (ends_in_string(msg->content, "!ADM") ||
+          ends_in_string(msg->content, "!adm")) {
         pfx = 3;
       } else {
         pfx = 2;
