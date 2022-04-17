@@ -7,7 +7,7 @@ case $OS in
 		git fetch origin
 		git reset --hard origin/main
  		make clean
- 		make make -j$(nproc)
+ 		make -j$(nproc)
 		./bot
 		;;
 	'NetBSD')
