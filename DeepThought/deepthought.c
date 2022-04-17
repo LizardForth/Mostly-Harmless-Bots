@@ -483,7 +483,9 @@ void *forth_execute(void *input) {
   ((struct forth_args *)input)->fth_rc = -127;
   ((struct forth_args *)input)->fth_rc =
       ficlVmEvaluate(vm, ((struct forth_args *)input)->command);
-  ficlVmTextOut(vm, " ok");
+  if ( ((struct forth_args *)input)->fth_rc == -257 ) {
+    ficlVmTextOut(vm, "ok");
+  }
   fflush(stdout);
   freopen("/dev/tty", "a", stdout);
   pthread_cond_signal(&forthCond);
