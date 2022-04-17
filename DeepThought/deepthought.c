@@ -483,6 +483,7 @@ void *forth_execute(void *input) {
   ((struct forth_args *)input)->fth_rc = -127;
   ((struct forth_args *)input)->fth_rc =
       ficlVmEvaluate(vm, ((struct forth_args *)input)->command);
+  ficlVmTextOut(vm, " ok");
   fflush(stdout);
   freopen("/dev/tty", "a", stdout);
   pthread_cond_signal(&forthCond);
@@ -541,15 +542,15 @@ void on_message(struct discord *client, const struct discord_message *msg) {
     discord_create_message(client, msg->channel_id, &params, NULL);
     return;
   }
-
-  char *command = (char *)malloc(strlen(msg->content) - 4);
-
+  char *command = (char *)malloc(strlen(msg->content) - 3);
   strncpy(command, msg->content, strlen(msg->content) - 4);
+  command[strlen(msg->content) - 4] = 0;
+
   int fth_rc;
 
-  char *command_old = (char *)malloc(strlen(command) + 1);
+  char *command_old = (char *)malloc(strlen(command));
 
-  strncpy(command_old, command, strlen(command));
+  strncpy(command_old, command, strlen(command) + 1);
 
   log_info("Prefix number: %d", pfx);
 
@@ -562,7 +563,7 @@ void on_message(struct discord *client, const struct discord_message *msg) {
     free(prep);
   }
 
-  char *forth_in = (char *)malloc(strlen(command) + 9);
+  char *forth_in = (char *)malloc(strlen(command_old) + 9);
 
   log_info("Parsed: %s", command);
 
