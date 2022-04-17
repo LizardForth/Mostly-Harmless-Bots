@@ -309,7 +309,7 @@ extern "C" {
 ** and a private dictionary for local variable compilation.
 */
 #if !defined FICL_WANT_LOCALS
-#define FICL_WANT_LOCALS (1)
+#define FICL_WANT_LOCALS (0)
 #endif /* FICL_WANT_LOCALS */
 
 /*
