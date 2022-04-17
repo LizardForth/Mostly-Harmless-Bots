@@ -349,6 +349,64 @@ int ficlVmParseFloatNumber(ficlVm *vm, ficlString s) {
   return (1);
 }
 
+static void ficlPrimitiveFSqrt(ficlVm *vm) {
+  ficlStackPushFloat(vm->floatStack, sqrtf(ficlStackPopFloat(vm->floatStack)));
+}
+
+static void ficlPrimitiveFSin(ficlVm *vm) {
+  ficlStackPushFloat(vm->floatStack, sinf(ficlStackPopFloat(vm->floatStack)));
+}
+
+static void ficlPrimitiveFCos(ficlVm *vm) {
+  ficlStackPushFloat(vm->floatStack, cosf(ficlStackPopFloat(vm->floatStack)));
+}
+
+static void ficlPrimitiveFTan(ficlVm *vm) {
+  ficlStackPushFloat(vm->floatStack, tanf(ficlStackPopFloat(vm->floatStack)));
+}
+
+static void ficlPrimitiveFASin(ficlVm *vm) {
+  ficlStackPushFloat(vm->floatStack, asinf(ficlStackPopFloat(vm->floatStack)));
+}
+
+static void ficlPrimitiveFACos(ficlVm *vm) {
+  ficlStackPushFloat(vm->floatStack, acosf(ficlStackPopFloat(vm->floatStack)));
+}
+
+static void ficlPrimitiveFATan(ficlVm *vm) {
+  ficlStackPushFloat(vm->floatStack, atanf(ficlStackPopFloat(vm->floatStack)));
+}
+
+static void ficlPrimitiveFloor(ficlVm *vm) {
+  ficlStackPushFloat(vm->floatStack, floorf(ficlStackPopFloat(vm->floatStack)));
+}
+
+static void ficlPrimitiveFMin(ficlVm *vm) {
+  float f1;
+  float f2;
+  f1 = ficlStackPopFloat(vm->floatStack);
+  f2 = ficlStackPopFloat(vm->floatStack);
+  if (f2 < f1) {
+    ficlStackPushFloat(vm->floatStack, f2);
+  } else {
+    ficlStackPushFloat(vm->floatStack, f1);
+  }
+}
+
+static void ficlPrimitiveFMax(ficlVm *vm) {
+  float f1;
+  float f2;
+  f1 = ficlStackPopFloat(vm->floatStack);
+  f2 = ficlStackPopFloat(vm->floatStack);
+  if (f2 > f1) {
+    ficlStackPushFloat(vm->floatStack, f2);
+  } else {
+    ficlStackPushFloat(vm->floatStack, f1);
+  }
+}
+static void ficlPrimitivePI(ficlVm *vm) {
+  ficlStackPushFloat(vm->floatStack, 3.14159265358979323846);
+}
 #if FICL_WANT_LOCALS
 
 static void ficlPrimitiveFLocalParen(ficlVm *vm) { ficlLocalParen(vm, 0, 1); }
@@ -390,7 +448,28 @@ void ficlSystemCompileFloat(ficlSystem *system) {
                              FICL_WORD_DEFAULT);
   ficlDictionarySetPrimitive(dictionary, "fe.", ficlPrimitiveEDot,
                              FICL_WORD_DEFAULT);
-
+  ficlDictionarySetPrimitive(dictionary, "fsqrt", ficlPrimitiveFSqrt,
+                             FICL_WORD_DEFAULT);
+  ficlDictionarySetPrimitive(dictionary, "fsin", ficlPrimitiveFSin,
+                             FICL_WORD_DEFAULT);
+  ficlDictionarySetPrimitive(dictionary, "fcos", ficlPrimitiveFCos,
+                             FICL_WORD_DEFAULT);
+  ficlDictionarySetPrimitive(dictionary, "ftan", ficlPrimitiveFTan,
+                             FICL_WORD_DEFAULT);                                                        
+  ficlDictionarySetPrimitive(dictionary, "fasin", ficlPrimitiveFASin,
+                             FICL_WORD_DEFAULT);
+  ficlDictionarySetPrimitive(dictionary, "facos", ficlPrimitiveFACos,
+                             FICL_WORD_DEFAULT);
+  ficlDictionarySetPrimitive(dictionary, "fatan", ficlPrimitiveFATan,
+                             FICL_WORD_DEFAULT);
+  ficlDictionarySetPrimitive(dictionary, "floor", ficlPrimitiveFloor,
+                             FICL_WORD_DEFAULT);
+  ficlDictionarySetPrimitive(dictionary, "fmin", ficlPrimitiveFMin,
+                             FICL_WORD_DEFAULT);
+  ficlDictionarySetPrimitive(dictionary, "fmax", ficlPrimitiveFMax,
+                             FICL_WORD_DEFAULT);                             
+  ficlDictionarySetPrimitive(dictionary, "pi", ficlPrimitivePI,
+                             FICL_WORD_DEFAULT);                             
 #if FICL_WANT_LOCALS
   ficlDictionarySetPrimitive(dictionary, "(flocal)", ficlPrimitiveFLocalParen,
                              FICL_WORD_COMPILE_ONLY);
