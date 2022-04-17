@@ -542,7 +542,7 @@ void on_message(struct discord *client, const struct discord_message *msg) {
     return;
   }
 
-  char *command = (char *)malloc(strlen(msg->content));
+  char *command = (char *)malloc(strlen(msg->content) - 4);
 
   strncpy(command, msg->content, strlen(msg->content) - 4);
   int fth_rc;
