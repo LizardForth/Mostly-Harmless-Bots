@@ -407,6 +407,11 @@ static void ficlPrimitiveFMax(ficlVm *vm) {
 static void ficlPrimitivePI(ficlVm *vm) {
   ficlStackPushFloat(vm->floatStack, 3.14159265358979323846);
 }
+
+static void ficlPrimitiveFLn(ficlVm *vm) {
+  ficlStackPushFloat(vm->floatStack, logf(ficlStackPopFloat(vm->floatStack)));
+}
+
 #if FICL_WANT_LOCALS
 
 static void ficlPrimitiveFLocalParen(ficlVm *vm) { ficlLocalParen(vm, 0, 1); }
@@ -470,7 +475,10 @@ void ficlSystemCompileFloat(ficlSystem *system) {
                              FICL_WORD_DEFAULT);                             
   ficlDictionarySetPrimitive(dictionary, "pi", ficlPrimitivePI,
                              FICL_WORD_DEFAULT);                             
+  ficlDictionarySetPrimitive(dictionary, "fln", ficlPrimitiveFLn,
+                             FICL_WORD_DEFAULT);
 #if FICL_WANT_LOCALS
+
   ficlDictionarySetPrimitive(dictionary, "(flocal)", ficlPrimitiveFLocalParen,
                              FICL_WORD_COMPILE_ONLY);
   ficlDictionarySetPrimitive(dictionary, "(f2local)", ficlPrimitiveF2LocalParen,
