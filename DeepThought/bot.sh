@@ -8,6 +8,7 @@ case $OS in
 		git reset --hard origin/main
  		make clean
  		make -j$(nproc)
+ 		clear
 		./bot
 		;;
 	'NetBSD')
@@ -16,6 +17,7 @@ case $OS in
 		make -f Makefile.bsd clean 
 		make -f Makefile.bsd -j4
 		export LD_LIBRARY_PATH=/usr/pkg/lib
+		clear
 		./bot
 		;;
 esac	
