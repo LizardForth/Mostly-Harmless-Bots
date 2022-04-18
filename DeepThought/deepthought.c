@@ -22,47 +22,35 @@ struct forth_args {
 pthread_mutex_t forthMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t forthCond = PTHREAD_COND_INITIALIZER;
 
-static void disRestart(ficlVm *vm) { raise(SIGINT); }
+// Simple bot restart if you run the script it will pull from git and autoupdate
+static void disRestart(ficlVm *vm) { raise(SIGINT); } 
 
-// -----------------
-// A helper function
-// -----------------
-
-/*
-static void disTester(ficlVm *vm) {
+// Nice example code that shows args and explains the actual forth discord 
+static void disPin(ficlVm *vm) {  
   const struct discord_message *msg;
   struct discord *client;
-  ficlDictionary *dictionary = ficlVmGetDictionary(vm);
-  ficlString s1;
-  ficlString s2;
-  FICL_STRING_SET_FROM_CSTRING(s1, "msg");
-  FICL_STRING_SET_FROM_CSTRING(s2, "dis");
-  ficlVmExecuteWord(vm, ficlDictionaryLookup(dictionary, s2));
-  ficlVmExecuteWord(vm, ficlDictionaryLookup(dictionary, s1));
-  msg = ficlStackPopPointer(vm->dataStack);
+  ficlDictionary *dictionary = ficlVmGetDictionary(vm); 
+  // FICL Words can't be normal strings since forth uses counted strings.      
+  ficlString s1; 
+  ficlString s2; 
+  // A nice little undocumented string converter for forth
+  FICL_STRING_SET_FROM_CSTRING(s1, "msg");  
+  FICL_STRING_SET_FROM_CSTRING(s2, "dis"); 
+  // Execute constants cotaining pointers to our message and client structs
+  ficlVmExecuteWord(vm, ficlDictionaryLookup(dictionary, s2));  
+  ficlVmExecuteWord(vm, ficlDictionaryLookup(dictionary, s1)); 
+  // explicitly grab them as pointers and assign structs to them 
+  msg = ficlStackPopPointer(vm->dataStack); 
   client = ficlStackPopPointer(vm->dataStack);
-}
-*/
-
-static void disTester(ficlVm *vm) {
-  const struct discord_message *msg;
-  struct discord *client;
-  ficlDictionary *dictionary = ficlVmGetDictionary(vm);
-  ficlString s1;
-  ficlString s2;
-  FICL_STRING_SET_FROM_CSTRING(s1, "msg");
-  FICL_STRING_SET_FROM_CSTRING(s2, "dis");
-  ficlVmExecuteWord(vm, ficlDictionaryLookup(dictionary, s2));
-  ficlVmExecuteWord(vm, ficlDictionaryLookup(dictionary, s1));
-  msg = ficlStackPopPointer(vm->dataStack);
-  client = ficlStackPopPointer(vm->dataStack);
+  // all discord centric code and the like can be done now grabbing from stack  
   discord_pin_message(client, msg->channel_id,
                       ficlStackPopInteger(vm->dataStack), NULL);
 }
 
+// Nice example for basic FICL words in C
 static void disSpecs(
-    ficlVm *vm) { // This function is just going to be hard coded I can't be
-                  // bothered to dynamically pull system info for each os
+    ficlVm *vm) { 
+  // This function is just going to be hard coded I can't be bothered 
 #ifdef __linux__
   ficlVmTextOut(vm, "OS: Linux");
 #elif __NetBSD__
@@ -98,6 +86,28 @@ void on_ready(struct discord *client) {
       .since = discord_timestamp(client),
   };
   discord_set_presence(client, &status);
+}
+
+// As of right now this only counts the number of correct emotes on reaction.
+void on_reaction_add(struct discord *client, u64snowflake user_id,
+                     u64snowflake channel_id, u64snowflake message_id,
+                     u64snowflake guild_id,
+                     const struct discord_guild_member *member,
+                     const struct discord_emoji *emoji) {
+  if (emoji->id != 958592178026852352) {
+    return;
+  }
+  struct discord_users users;
+  struct discord_message msg;
+  struct discord_ret_message ret_message = {.sync = &msg};
+  discord_get_channel_message(client, channel_id, message_id, &ret_message);
+  log_info("%s", msg.content);
+  for (int i = 0; i < msg.reactions->size; i++) {
+    if (msg.reactions->array[i].count > 0 &&
+        msg.reactions->array[i].emoji->id == 958592178026852352) {
+      log_info("Pollo Count: %d", msg.reactions->array[i].count);
+    }
+  }
 }
 
 int ends_in_string(char str[], char substr[]) {
@@ -512,7 +522,7 @@ void *forth_execute(void *input) {
       ((struct forth_args *)input)->pfx == 3) {
     ficlDictionarySetPrimitive(dictionary, "restart", disRestart,
                                FICL_WORD_DEFAULT);
-    ficlDictionarySetPrimitive(dictionary, "pin", disTester, FICL_WORD_DEFAULT);
+    ficlDictionarySetPrimitive(dictionary, "pin", disPin, FICL_WORD_DEFAULT);
     ficlDictionarySetConstant(dictionary, "msg",
                               ((struct forth_args *)input)->msg);
     ficlDictionarySetConstant(dictionary, "dis",
@@ -665,6 +675,7 @@ int main(void) {
   struct discord *client = discord_init(token);
   discord_set_on_ready(client, &on_ready);
   discord_set_on_message_create(client, &on_message);
+  discord_set_on_message_reaction_add(client, &on_reaction_add);
   discord_run(client);
   discord_cleanup(client);
   ccord_global_cleanup();
