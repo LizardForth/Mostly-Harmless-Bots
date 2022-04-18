@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <concord/discord.h>
 #include <pthread.h>
 #include <signal.h>
@@ -177,10 +178,9 @@ void accessErrorEmbed(struct discord *client, const struct discord_message *msg,
 
 int getPrefix(struct discord *client, const struct discord_message *msg,
               char *forth_in) {
-  int pfx = 0;
   char *access = (char *)malloc(strlen(forth_in) + 9);
-  bool admin = false;
   snprintf(access, strlen(forth_in) + 9, "``` %s ```", forth_in);
+
   if (ends_in_string(msg->content, "!FTH") ||
       ends_in_string(msg->content, "!ADM") ||
       ends_in_string(msg->content, "!CMD") ||
@@ -189,7 +189,7 @@ int getPrefix(struct discord *client, const struct discord_message *msg,
       ends_in_string(msg->content, "!cmd")) {
     if (ends_in_string(msg->content, "!FTH") ||
         ends_in_string(msg->content, "!fth")) {
-      pfx = 1;
+      return 1;
     } else if (ends_in_string(msg->content, "!ADM") ||
                ends_in_string(msg->content, "!CMD") ||
                ends_in_string(msg->content, "!adm") ||
@@ -197,23 +197,20 @@ int getPrefix(struct discord *client, const struct discord_message *msg,
       for (int i = 0; i < msg->member->roles->size; i++) {
         if (msg->member->roles->array[i] == 953785894656147566) {
           log_info("Admin is Executing");
-          admin = true;
+          if (ends_in_string(msg->content, "!ADM") ||
+              ends_in_string(msg->content, "!adm")) {
+
+            return 3;
+          } else {
+            return 2;
+          }
         }
       }
-      if (!admin) {
-        accessErrorEmbed(client, msg, access);
-        return 0;
-      }
-
-      if (ends_in_string(msg->content, "!ADM") ||
-          ends_in_string(msg->content, "!adm")) {
-        pfx = 3;
-      } else {
-        pfx = 2;
-      }
+      accessErrorEmbed(client, msg, access);
+      return 0;
     }
   }
-  return pfx;
+  return 0;
 }
 
 void cmdEmbed(struct discord *client, const struct discord_message *msg,
@@ -667,13 +664,20 @@ int main(void) {
   pthread_mutex_init(&forthMutex, NULL);
   pthread_cond_init(&forthCond, NULL);
 
+  ccord_global_init();
+
   fth_system = ficlSystemCreate(NULL);
-  const char *config_file = "./bot.json";
-  struct discord *client = discord_config_init(config_file);
+
+  fptr = fopen("token.txt", "r");
+  fscanf(fptr, "%[^\n]", token);
+  struct discord *client = discord_init(token);
+
   discord_set_on_ready(client, &on_ready);
   discord_set_on_message_create(client, &on_message);
   discord_set_on_message_reaction_add(client, &on_reaction_add);
+
   discord_run(client);
+
   discord_cleanup(client);
   ccord_global_cleanup();
 }
