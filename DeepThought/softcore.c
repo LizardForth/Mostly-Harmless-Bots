@@ -2082,7 +2082,7 @@ void ficlSystemCompileSoftCore(ficlSystem *system) {
 #if FICL_WANT_LZ_SOFTCORE
   free(ficlSoftcoreUncompressed);
 #endif /* FICL_WANT_LZ_SOFTCORE */
-  //FICL_VM_ASSERT(vm, returnValue != FICL_VM_STATUS_ERROR_EXIT);
+  // FICL_VM_ASSERT(vm, returnValue != FICL_VM_STATUS_ERROR_EXIT);
   return;
 }
 

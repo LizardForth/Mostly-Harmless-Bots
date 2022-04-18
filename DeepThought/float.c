@@ -460,7 +460,7 @@ void ficlSystemCompileFloat(ficlSystem *system) {
   ficlDictionarySetPrimitive(dictionary, "fcos", ficlPrimitiveFCos,
                              FICL_WORD_DEFAULT);
   ficlDictionarySetPrimitive(dictionary, "ftan", ficlPrimitiveFTan,
-                             FICL_WORD_DEFAULT);                                                        
+                             FICL_WORD_DEFAULT);
   ficlDictionarySetPrimitive(dictionary, "fasin", ficlPrimitiveFASin,
                              FICL_WORD_DEFAULT);
   ficlDictionarySetPrimitive(dictionary, "facos", ficlPrimitiveFACos,
@@ -472,9 +472,9 @@ void ficlSystemCompileFloat(ficlSystem *system) {
   ficlDictionarySetPrimitive(dictionary, "fmin", ficlPrimitiveFMin,
                              FICL_WORD_DEFAULT);
   ficlDictionarySetPrimitive(dictionary, "fmax", ficlPrimitiveFMax,
-                             FICL_WORD_DEFAULT);                             
+                             FICL_WORD_DEFAULT);
   ficlDictionarySetPrimitive(dictionary, "pi", ficlPrimitivePI,
-                             FICL_WORD_DEFAULT);                             
+                             FICL_WORD_DEFAULT);
   ficlDictionarySetPrimitive(dictionary, "fln", ficlPrimitiveFLn,
                              FICL_WORD_DEFAULT);
 #if FICL_WANT_LOCALS

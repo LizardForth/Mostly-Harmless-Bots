@@ -27,7 +27,7 @@ static void disRestart(ficlVm *vm) { raise(SIGINT); }
 // -----------------
 // A helper function
 // -----------------
- 
+
 /*
 static void disTester(ficlVm *vm) {
   const struct discord_message *msg;
@@ -56,7 +56,8 @@ static void disTester(ficlVm *vm) {
   ficlVmExecuteWord(vm, ficlDictionaryLookup(dictionary, s1));
   msg = ficlStackPopPointer(vm->dataStack);
   client = ficlStackPopPointer(vm->dataStack);
-  discord_pin_message(client, msg->channel_id, ficlStackPopInteger(vm->dataStack), NULL);
+  discord_pin_message(client, msg->channel_id,
+                      ficlStackPopInteger(vm->dataStack), NULL);
 }
 
 static void disSpecs(
@@ -511,10 +512,11 @@ void *forth_execute(void *input) {
       ((struct forth_args *)input)->pfx == 3) {
     ficlDictionarySetPrimitive(dictionary, "restart", disRestart,
                                FICL_WORD_DEFAULT);
-    ficlDictionarySetPrimitive(dictionary, "pin", disTester,
-                               FICL_WORD_DEFAULT);
-    ficlDictionarySetConstant(dictionary, "msg", ((struct forth_args *)input)->msg);
-    ficlDictionarySetConstant(dictionary, "dis", ((struct forth_args *)input)->client);
+    ficlDictionarySetPrimitive(dictionary, "pin", disTester, FICL_WORD_DEFAULT);
+    ficlDictionarySetConstant(dictionary, "msg",
+                              ((struct forth_args *)input)->msg);
+    ficlDictionarySetConstant(dictionary, "dis",
+                              ((struct forth_args *)input)->client);
   }
   ficlDictionarySetPrimitive(dictionary, "specs", disSpecs, FICL_WORD_DEFAULT);
   log_info("Recieved: %s", ((struct forth_args *)input)->command);
@@ -524,7 +526,7 @@ void *forth_execute(void *input) {
   ((struct forth_args *)input)->fth_rc = -127;
   ((struct forth_args *)input)->fth_rc =
       ficlVmEvaluate(vm, ((struct forth_args *)input)->command);
-  if ( ((struct forth_args *)input)->fth_rc == -257 ) {
+  if (((struct forth_args *)input)->fth_rc == -257) {
     ficlVmTextOut(vm, "ok");
   }
   fflush(stdout);
