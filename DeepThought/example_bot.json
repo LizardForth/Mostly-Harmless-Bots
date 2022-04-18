@@ -1,0 +1,20 @@
+{
+  "logging": {  // logging directives
+    "level": "trace",        // trace, debug, info, warn, error, fatal
+    "filename": "deepthought.log",   // the log output file
+    "quiet": false,          // change to true to disable logs in console
+    "overwrite": true,       // overwrite file if already exists, append otherwise
+    "use_color": true,       // display color for log entries
+    "http": {
+      "enable": false,        // generate http specific logging
+      "filename": "http.log" // the HTTP log output file
+    },
+    "disable_modules": ["WEBSOCKETS", "USER_AGENT"] // disable logging for these modules
+  },
+  "discord": { // discord directives
+    "token": "YOUR-BOT-TOKEN",         // replace with your bot token
+    "default_prefix": {                 
+      "enable": false,                 // enable default command prefix
+      "prefix": "NONE" // replace with your prefix
+    }
+  }

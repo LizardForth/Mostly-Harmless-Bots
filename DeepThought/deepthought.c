@@ -668,10 +668,8 @@ int main(void) {
   pthread_cond_init(&forthCond, NULL);
 
   fth_system = ficlSystemCreate(NULL);
-
-  fptr = fopen("token.txt", "r");
-  fscanf(fptr, "%[^\n]", token);
-  struct discord *client = discord_init(token);
+  const char *config_file = "./bot.json";
+  struct discord *client = discord_config_init(config_file);
   discord_set_on_ready(client, &on_ready);
   discord_set_on_message_create(client, &on_message);
   discord_set_on_message_reaction_add(client, &on_reaction_add);
