@@ -23,34 +23,33 @@ pthread_mutex_t forthMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t forthCond = PTHREAD_COND_INITIALIZER;
 
 // Simple bot restart if you run the script it will pull from git and autoupdate
-static void disRestart(ficlVm *vm) { raise(SIGINT); } 
+static void disRestart(ficlVm *vm) { raise(SIGINT); }
 
-// Nice example code that shows args and explains the actual forth discord 
-static void disPin(ficlVm *vm) {  
+// Nice example code that shows args and explains the actual forth discord
+static void disPin(ficlVm *vm) {
   const struct discord_message *msg;
   struct discord *client;
-  ficlDictionary *dictionary = ficlVmGetDictionary(vm); 
-  // FICL Words can't be normal strings since forth uses counted strings.      
-  ficlString s1; 
-  ficlString s2; 
+  ficlDictionary *dictionary = ficlVmGetDictionary(vm);
+  // FICL Words can't be normal strings since forth uses counted strings.
+  ficlString s1;
+  ficlString s2;
   // A nice little undocumented string converter for forth
-  FICL_STRING_SET_FROM_CSTRING(s1, "msg");  
-  FICL_STRING_SET_FROM_CSTRING(s2, "dis"); 
+  FICL_STRING_SET_FROM_CSTRING(s1, "msg");
+  FICL_STRING_SET_FROM_CSTRING(s2, "dis");
   // Execute constants cotaining pointers to our message and client structs
-  ficlVmExecuteWord(vm, ficlDictionaryLookup(dictionary, s2));  
-  ficlVmExecuteWord(vm, ficlDictionaryLookup(dictionary, s1)); 
-  // explicitly grab them as pointers and assign structs to them 
-  msg = ficlStackPopPointer(vm->dataStack); 
+  ficlVmExecuteWord(vm, ficlDictionaryLookup(dictionary, s2));
+  ficlVmExecuteWord(vm, ficlDictionaryLookup(dictionary, s1));
+  // explicitly grab them as pointers and assign structs to them
+  msg = ficlStackPopPointer(vm->dataStack);
   client = ficlStackPopPointer(vm->dataStack);
-  // all discord centric code and the like can be done now grabbing from stack  
+  // all discord centric code and the like can be done now grabbing from stack
   discord_pin_message(client, msg->channel_id,
                       ficlStackPopInteger(vm->dataStack), NULL);
 }
 
 // Nice example for basic FICL words in C
-static void disSpecs(
-    ficlVm *vm) { 
-  // This function is just going to be hard coded I can't be bothered 
+static void disSpecs(ficlVm *vm) {
+  // This function is just going to be hard coded I can't be bothered
 #ifdef __linux__
   ficlVmTextOut(vm, "OS: Linux");
 #elif __NetBSD__
