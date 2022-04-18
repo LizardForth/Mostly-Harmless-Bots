@@ -15,12 +15,49 @@ struct forth_args {
   char *command;
   int fth_rc;
   int pfx;
+  struct discord_message *msg;
+  struct discord *client;
 };
 
 pthread_mutex_t forthMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t forthCond = PTHREAD_COND_INITIALIZER;
 
 static void disRestart(ficlVm *vm) { raise(SIGINT); }
+
+// -----------------
+// A helper function
+// -----------------
+ 
+/*
+static void disTester(ficlVm *vm) {
+  const struct discord_message *msg;
+  struct discord *client;
+  ficlDictionary *dictionary = ficlVmGetDictionary(vm);
+  ficlString s1;
+  ficlString s2;
+  FICL_STRING_SET_FROM_CSTRING(s1, "msg");
+  FICL_STRING_SET_FROM_CSTRING(s2, "dis");
+  ficlVmExecuteWord(vm, ficlDictionaryLookup(dictionary, s2));
+  ficlVmExecuteWord(vm, ficlDictionaryLookup(dictionary, s1));
+  msg = ficlStackPopPointer(vm->dataStack);
+  client = ficlStackPopPointer(vm->dataStack);
+}
+*/
+
+static void disTester(ficlVm *vm) {
+  const struct discord_message *msg;
+  struct discord *client;
+  ficlDictionary *dictionary = ficlVmGetDictionary(vm);
+  ficlString s1;
+  ficlString s2;
+  FICL_STRING_SET_FROM_CSTRING(s1, "msg");
+  FICL_STRING_SET_FROM_CSTRING(s2, "dis");
+  ficlVmExecuteWord(vm, ficlDictionaryLookup(dictionary, s2));
+  ficlVmExecuteWord(vm, ficlDictionaryLookup(dictionary, s1));
+  msg = ficlStackPopPointer(vm->dataStack);
+  client = ficlStackPopPointer(vm->dataStack);
+  discord_pin_message(client, msg->channel_id, ficlStackPopInteger(vm->dataStack), NULL);
+}
 
 static void disSpecs(
     ficlVm *vm) { // This function is just going to be hard coded I can't be
@@ -474,6 +511,10 @@ void *forth_execute(void *input) {
       ((struct forth_args *)input)->pfx == 3) {
     ficlDictionarySetPrimitive(dictionary, "restart", disRestart,
                                FICL_WORD_DEFAULT);
+    ficlDictionarySetPrimitive(dictionary, "pin", disTester,
+                               FICL_WORD_DEFAULT);
+    ficlDictionarySetConstant(dictionary, "msg", ((struct forth_args *)input)->msg);
+    ficlDictionarySetConstant(dictionary, "dis", ((struct forth_args *)input)->client);
   }
   ficlDictionarySetPrimitive(dictionary, "specs", disSpecs, FICL_WORD_DEFAULT);
   log_info("Recieved: %s", ((struct forth_args *)input)->command);
@@ -518,7 +559,7 @@ void on_message(struct discord *client, const struct discord_message *msg) {
 
   if (msg->author->bot)
     return;
-
+  log_info("MSG: %lu", msg);
   int pfx = getPrefix(client, msg, msg->content);
   if (pfx == 0) {
     return;
@@ -555,7 +596,7 @@ void on_message(struct discord *client, const struct discord_message *msg) {
   strncpy(command_old, command, strlen(command) + 1);
 
   log_info("Prefix number: %d", pfx);
-
+  log_info("MSG pointer: %lu", msg);
   if (pfx == 3 || pfx == 2) {
     char *addon = ": TEST .\" TEST\" ; ";
     char *prep = strdup(command);
@@ -574,6 +615,8 @@ void on_message(struct discord *client, const struct discord_message *msg) {
   forth_args_in->command = command;
   forth_args_in->buffer = buffer;
   forth_args_in->pfx = pfx;
+  forth_args_in->msg = msg;
+  forth_args_in->client = client;
 
   pthread_t tid1;
   pthread_t tid2;
