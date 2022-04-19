@@ -26,13 +26,13 @@ void bot_updateRunner(struct discord *bot_client) {
   discord_create_message(bot_client, 966071069255565353, &params, NULL);
   remove("update.log");
   system("git pull");
-  #ifdef __linux__
-    system("make clean");
-    int status = system("make -j$(nproc) &> update.log");
-  #elif __NetBSD__
-    system("make -f Makefile.bsd -j4 &> update.log");
-    int status = system("make -f Makefile.bsd -j4 &> update.log");
-  #endif 
+#ifdef __linux__
+  system("make clean");
+  int status = system("make -j$(nproc) &> update.log");
+#elif __NetBSD__
+  system("make -f Makefile.bsd -j4 &> update.log");
+  int status = system("make -f Makefile.bsd -j4 &> update.log");
+#endif
   log_info("%d", status);
   if (status == 0) {
     embed.title = "Deep thought compiled succesfully";
