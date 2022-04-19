@@ -40,7 +40,7 @@ void bot_updateRunner(struct discord *bot_client) {
     struct discord_attachment dis_attachments[] = {
         {.filename = "update.log"},
     };
-    struct discord_create_message params = {
+    struct discord_create_message dis_params = {
         .embeds =
             &(struct discord_embeds){
                 .size = 1,
@@ -48,7 +48,7 @@ void bot_updateRunner(struct discord *bot_client) {
             },
     };
     discord_create_message(bot_client, 966085554854838332, &dis_params, NULL);
-    params.attachments = &(struct discord_attachments){
+    dis_params.attachments = &(struct discord_attachments){
         .size = 1,
         .array = dis_attachments,
     };
