@@ -71,7 +71,7 @@ static void disMute(ficlVm *forth_vm) {
   discord_add_guild_member_role(bot_client, 953769673634246757, dis_userid,
                                 965854189517406238, NULL);
   discord_timer(bot_client, disMuteCb, dis_userid,
-                ficlStackPopInteger(forth_vm->dataStack));
+                60000 * ficlStackPopInteger(forth_vm->dataStack));
 }
 // Nice example for basic FICL words in C
 static void disSpecs(ficlVm *forth_vm) {
