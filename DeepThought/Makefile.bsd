@@ -15,7 +15,7 @@ MINOR = 1.0
 
 ficl: deepthought.o updater.o $(HEADERS) libficl.a
 	$(CC) $(CFLAGS) $(LDFLAGS) deepthought.o -o bot -L. -lficl -lm -lcurl -ldiscord -lpthread
-        $(CC) $(CFLAGS) $(LDFLAGS) updater.o -o updater -L. -lficl -lm -lcurl -ldiscord -lpthread
+	$(CC) $(CFLAGS) $(LDFLAGS) updater.o -o updater -L. -lficl -lm -lcurl -ldiscord -lpthread
 
 
 lib: libficl.so.$(MAJOR).$(MINOR)
@@ -40,7 +40,7 @@ deepthought: deepthought.o ficl.h sysdep.h libficl.so.$(MAJOR).$(MINOR)
 	ln -sf libficl.so.$(MAJOR).$(MINOR) libficl.so.$(MAJOR)
         
 updater: updater.o ficl.h sysdep.h libficl.so.$(MAJOR).$(MINOR)
-        $(CC) $(CFLAGS) $(LDFLAGS) updater.o -o updater -L. -lm -ldiscord -lcurl -lpthread
+	$(CC) $(CFLAGS) $(LDFLAGS) updater.o -o updater -L. -lm -ldiscord -lcurl -lpthread
 
 # depend explicitly to help finding source files in another subdirectory,
 # and repeat commands since gmake doesn't understand otherwise
