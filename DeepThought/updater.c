@@ -34,7 +34,7 @@ void bot_updateRunner(struct discord *bot_client) {
   int bot_updateStatus = system("make -f Makefile.bsd -j4 &> update.log");
 #endif
   log_info("%d", bot_updateStatus);
-  if (status == 0) {
+  if (bot_updateStatus == 0) {
     dis_embed.title = "Deep thought compiled succesfully";
     dis_embed.description = "See attached log";
     struct discord_attachment dis_attachments[] = {
@@ -69,7 +69,7 @@ void bot_updateRunner(struct discord *bot_client) {
             },
     };
     discord_create_message(bot_client, 966085554854838332, &dis_params, NULL);
-    params.attachments = &(struct discord_attachments){
+    dis_params.attachments = &(struct discord_attachments){
         .size = 1,
         .array = dis_attachments,
     };
