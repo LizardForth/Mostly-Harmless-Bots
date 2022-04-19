@@ -6,5 +6,9 @@ do
   if [ $changed = 1 ]; then
     ./updater
   fi
-    ./bot
+  OS="`uname`"
+  if [ $os = 'NetBSD' ]; then
+    export LD_LIBRARY_PATH=/usr/pkg/lib
+  fi
+  ./bot
 done     
