@@ -30,8 +30,12 @@ void bot_updateRunner(struct discord *bot_client) {
   system("make clean");
   int bot_updateStatus = system("make -j$(nproc) &> update.log");
 #elif __NetBSD__
+  freopen("update.log", "a", stderr);
+  freopen("update.log", "a", stdout);
   system("gmake -f Makefile.bsd clean");
-  int bot_updateStatus = system("gmake -f Makefile.bsd -j4 &> update.log");
+  freopen("/dev/tty", "a", stderr);
+  freopen("/dev/tty", "a", stdout);
+  int bot_updateStatus = system("gmake -f Makefile.bsd -j4");
 #endif
   log_info("%d", bot_updateStatus);
   if (bot_updateStatus == 0) {
