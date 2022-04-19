@@ -26,10 +26,9 @@ A discord bot that interprets user commands as FORTH code.
 
 ## Setup
  1. Clone this repo 
- 2. Run `make`
- 3. Put your token in a file called token.txt in the base dir
- 4. Run `bot.sh`. This will auto update the bot each time you call for it to be restarted
- 
+ 2. Put your token in a file called token.txt in the base dir
+ 3. Run `bot.sh`. This will auto update the bot each time you call for it to be restarted
+ 4. Do note as of right now most things are hard coded for my server. 
 
 ## Credits
  The FORTH implementation used by this bot is FICL which can be found
