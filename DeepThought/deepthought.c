@@ -73,6 +73,64 @@ static void disMute(ficlVm *forth_vm) {
   discord_timer(bot_client, disMuteCb, dis_userid,
                 60000 * ficlStackPopInteger(forth_vm->dataStack));
 }
+
+static void disKick(ficlVm *forth_vm) {
+  const struct discord_message *dis_msg;
+  struct discord *bot_client;
+  ficlDictionary *forth_dict = ficlVmGetDictionary(forth_vm);
+  ficlString tempString1;
+  ficlString tempString2;
+  FICL_STRING_SET_FROM_CSTRING(tempString1, "dis_msg");
+  FICL_STRING_SET_FROM_CSTRING(tempString2, "bot_client");
+  ficlVmExecuteWord(forth_vm, ficlDictionaryLookup(forth_dict, tempString2));
+  ficlVmExecuteWord(forth_vm, ficlDictionaryLookup(forth_dict, tempString1));
+  dis_msg = ficlStackPopPointer(forth_vm->dataStack);
+  bot_client = ficlStackPopPointer(forth_vm->dataStack);
+  uint64_t *dis_userid = ficlStackPopInteger(forth_vm->dataStack);
+  log_info("Kicking: %lu", dis_userid);
+  discord_remove_guild_member(bot_client, 953769673634246757, dis_userid, NULL);
+}
+
+static void disBan(ficlVm *forth_vm) {
+  const struct discord_message *dis_msg;
+  struct discord *bot_client;
+  ficlDictionary *forth_dict = ficlVmGetDictionary(forth_vm);
+  ficlString tempString1;
+  ficlString tempString2;
+  FICL_STRING_SET_FROM_CSTRING(tempString1, "dis_msg");
+  FICL_STRING_SET_FROM_CSTRING(tempString2, "bot_client");
+  ficlVmExecuteWord(forth_vm, ficlDictionaryLookup(forth_dict, tempString2));
+  ficlVmExecuteWord(forth_vm, ficlDictionaryLookup(forth_dict, tempString1));
+  dis_msg = ficlStackPopPointer(forth_vm->dataStack);
+  bot_client = ficlStackPopPointer(forth_vm->dataStack);
+  uint64_t *dis_userid = ficlStackPopInteger(forth_vm->dataStack);
+  log_info("Ban: %lu", dis_userid);
+  discord_create_guild_ban(
+      bot_client, 953769673634246757, dis_userid,
+      &(struct discord_create_guild_ban){.delete_message_days = 0}, NULL);
+}
+
+static void disDelBan(ficlVm *forth_vm) {
+  const struct discord_message *dis_msg;
+  struct discord *bot_client;
+  ficlDictionary *forth_dict = ficlVmGetDictionary(forth_vm);
+  ficlString tempString1;
+  ficlString tempString2;
+  FICL_STRING_SET_FROM_CSTRING(tempString1, "dis_msg");
+  FICL_STRING_SET_FROM_CSTRING(tempString2, "bot_client");
+  ficlVmExecuteWord(forth_vm, ficlDictionaryLookup(forth_dict, tempString2));
+  ficlVmExecuteWord(forth_vm, ficlDictionaryLookup(forth_dict, tempString1));
+  dis_msg = ficlStackPopPointer(forth_vm->dataStack);
+  bot_client = ficlStackPopPointer(forth_vm->dataStack);
+  uint64_t *dis_userid = ficlStackPopInteger(forth_vm->dataStack);
+  log_info("Ban: %lu", dis_userid);
+  discord_create_guild_ban(
+      bot_client, 953769673634246757, dis_userid,
+      &(struct discord_create_guild_ban){
+          .delete_message_days = ficlStackPopInteger(forth_vm->dataStack)},
+      NULL);
+}
+
 // Nice example for basic FICL words in C
 static void disSpecs(ficlVm *forth_vm) {
   // This function is just going to be hard coded I can't be bothered
@@ -572,6 +630,10 @@ void *forthRunner(void *input) {
                                FICL_WORD_DEFAULT);
     ficlDictionarySetPrimitive(forth_dict, "pin", disPin, FICL_WORD_DEFAULT);
     ficlDictionarySetPrimitive(forth_dict, "mute", disMute, FICL_WORD_DEFAULT);
+    ficlDictionarySetPrimitive(forth_dict, "ban", disBan, FICL_WORD_DEFAULT);
+    ficlDictionarySetPrimitive(forth_dict, "delban", disDelBan,
+                               FICL_WORD_DEFAULT);
+    ficlDictionarySetPrimitive(forth_dict, "kick", disKick, FICL_WORD_DEFAULT);
     ficlDictionarySetConstant(forth_dict, "dis_msg",
                               ((struct forth_runnerArgs *)input)->dis_msg);
     ficlDictionarySetConstant(forth_dict, "bot_client",
