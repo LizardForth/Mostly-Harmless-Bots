@@ -23,7 +23,7 @@ void bot_updateRunner(struct discord *bot_client) {
               .array = &dis_embed,
           },
   };
-  discord_create_message(bot_client, 966071069255565353, &dis_params, NULL);
+  discord_create_message(bot_client, 966085554854838332, &dis_params, NULL);
   remove("update.log");
   system("git pull");
 #ifdef __linux__
@@ -47,13 +47,13 @@ void bot_updateRunner(struct discord *bot_client) {
                 .array = &dis_embed,
             },
     };
-    discord_create_message(bot_client, 966071069255565353, &dis_params, NULL);
+    discord_create_message(bot_client, 966085554854838332, &dis_params, NULL);
     params.attachments = &(struct discord_attachments){
         .size = 1,
         .array = dis_attachments,
     };
     dis_params.embeds->size = 0;
-    discord_create_message(bot_client, 966071069255565353, &dis_params, NULL);
+    discord_create_message(bot_client, 966085554854838332, &dis_params, NULL);
   } else {
     embed.title = "Deepthought failed to compile see attached log";
     embed.description = "See attached log";
@@ -68,13 +68,13 @@ void bot_updateRunner(struct discord *bot_client) {
                 .array = &embed,
             },
     };
-    discord_create_message(bot_client, 966071069255565353, &params, NULL);
+    discord_create_message(bot_client, 966085554854838332, &params, NULL);
     params.attachments = &(struct discord_attachments){
         .size = 1,
         .array = attachment_arr,
     };
     params.embeds->size = 0;
-    discord_create_message(bot_client, 966071069255565353, &params, NULL);
+    discord_create_message(bot_client, 966085554854838332, &params, NULL);
   }
   discord_timer(bot_client, disExitTimerCb, NULL, 5000);
 }
