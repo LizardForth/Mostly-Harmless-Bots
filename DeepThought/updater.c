@@ -33,7 +33,7 @@ void bot_updateRunner(struct discord *bot_client) {
   system("make -f Makefile.bsd -j4 &> update.log");
   int bot_updateStatus = system("make -f Makefile.bsd -j4 &> update.log");
 #endif
-  log_info("%d", status);
+  log_info("%d", bot_updateStatus);
   if (status == 0) {
     dis_embed.title = "Deep thought compiled succesfully";
     dis_embed.description = "See attached log";
@@ -55,26 +55,26 @@ void bot_updateRunner(struct discord *bot_client) {
     dis_params.embeds->size = 0;
     discord_create_message(bot_client, 966085554854838332, &dis_params, NULL);
   } else {
-    embed.title = "Deepthought failed to compile see attached log";
-    embed.description = "See attached log";
-    embed.color = 16077157;
-    struct discord_attachment attachment_arr[] = {
+    dis_embed.title = "Deepthought failed to compile see attached log";
+    dis_embed.description = "See attached log";
+    dis_embed.color = 16077157;
+    struct discord_attachment dis_attachments[] = {
         {.filename = "update.log"},
     };
-    struct discord_create_message params = {
+    struct discord_create_message dis_params = {
         .embeds =
             &(struct discord_embeds){
                 .size = 1,
-                .array = &embed,
+                .array = &dis_embed,
             },
     };
-    discord_create_message(bot_client, 966085554854838332, &params, NULL);
+    discord_create_message(bot_client, 966085554854838332, &dis_params, NULL);
     params.attachments = &(struct discord_attachments){
         .size = 1,
-        .array = attachment_arr,
+        .array = dis_attachments,
     };
     params.embeds->size = 0;
-    discord_create_message(bot_client, 966085554854838332, &params, NULL);
+    discord_create_message(bot_client, 966085554854838332, &dis_params, NULL);
   }
   discord_timer(bot_client, disExitTimerCb, NULL, 5000);
 }
