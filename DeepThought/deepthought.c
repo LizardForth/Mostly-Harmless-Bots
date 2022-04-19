@@ -48,6 +48,31 @@ static void disPin(ficlVm *forth_vm) {
                       ficlStackPopInteger(forth_vm->dataStack), NULL);
 }
 
+static void disMuteCb(struct discord *bot_client,
+                      struct discord_timer *dis_timer) {
+  log_info("Unmuting: %lu", dis_timer->data);
+  discord_remove_guild_member_role(bot_client, 953769673634246757,
+                                   dis_timer->data, 965854189517406238, NULL);
+}
+static void disMute(ficlVm *forth_vm) {
+  const struct discord_message *dis_msg;
+  struct discord *bot_client;
+  ficlDictionary *forth_dict = ficlVmGetDictionary(forth_vm);
+  ficlString tempString1;
+  ficlString tempString2;
+  FICL_STRING_SET_FROM_CSTRING(tempString1, "dis_msg");
+  FICL_STRING_SET_FROM_CSTRING(tempString2, "bot_client");
+  ficlVmExecuteWord(forth_vm, ficlDictionaryLookup(forth_dict, tempString2));
+  ficlVmExecuteWord(forth_vm, ficlDictionaryLookup(forth_dict, tempString1));
+  dis_msg = ficlStackPopPointer(forth_vm->dataStack);
+  bot_client = ficlStackPopPointer(forth_vm->dataStack);
+  uint64_t *dis_userid = ficlStackPopInteger(forth_vm->dataStack);
+  log_info("Muting: %lu", dis_userid);
+  discord_add_guild_member_role(bot_client, 953769673634246757, dis_userid,
+                                965854189517406238, NULL);
+  discord_timer(bot_client, disMuteCb, dis_userid,
+                ficlStackPopInteger(forth_vm->dataStack));
+}
 // Nice example for basic FICL words in C
 static void disSpecs(ficlVm *forth_vm) {
   // This function is just going to be hard coded I can't be bothered
@@ -115,6 +140,41 @@ int hasPostfix(char *strIn, char *postfix) {
     return 1;
   }
   return 0;
+}
+
+char *strReplace(const char *strIn, const char *strMatch,
+                 const char *strReplace) {
+  int i;
+  int count = 0;
+  // Counting the number of times old word
+  // occur in the string
+  for (i = 0; strIn[i] != '\0'; i++) {
+    if (strstr(&strIn[i], strMatch) == &strIn[i]) {
+      count++;
+
+      // Jumping to index after the old word.
+      i += strlen(strMatch);
+      -1;
+    }
+  }
+
+  // Making new string of enough length
+  char *strOut =
+      (char *)malloc(i + count * (strlen(strReplace) - strlen(strMatch)) + 1);
+
+  i = 0;
+  while (*strIn) {
+    // compare the substring with the result
+    if (strstr(strIn, strMatch) == strIn) {
+      strcpy(&strOut[i], strReplace);
+      i += strlen(strReplace);
+      strIn += strlen(strMatch);
+    } else
+      strOut[i++] = *strIn++;
+  }
+
+  strOut[i] = '\0';
+  return strOut;
 }
 
 void accessErrorEmbed(struct discord *bot_client,
@@ -511,6 +571,7 @@ void *forthRunner(void *input) {
     ficlDictionarySetPrimitive(forth_dict, "restart", disRestart,
                                FICL_WORD_DEFAULT);
     ficlDictionarySetPrimitive(forth_dict, "pin", disPin, FICL_WORD_DEFAULT);
+    ficlDictionarySetPrimitive(forth_dict, "mute", disMute, FICL_WORD_DEFAULT);
     ficlDictionarySetConstant(forth_dict, "dis_msg",
                               ((struct forth_runnerArgs *)input)->dis_msg);
     ficlDictionarySetConstant(forth_dict, "bot_client",
@@ -593,8 +654,20 @@ void disOnMessage(struct discord *bot_client,
   char *forth_inOld = (char *)malloc(strlen(forth_in));
 
   strncpy(forth_inOld, forth_in, strlen(forth_in) + 1);
+  char *bot_mentionPrep[32];
+  char *bot_mentionId[32];
+
+  for (int i = 0; i < dis_msg->mentions->size; i++) {
+    char *forth_mentionPrep = strdup(forth_in);
+    sprintf(bot_mentionPrep, "<@%lu>", dis_msg->mentions->array[i].id);
+    sprintf(bot_mentionId, "%lu", dis_msg->mentions->array[i].id);
+    strncpy(forth_in, strReplace(forth_in, bot_mentionPrep, bot_mentionId),
+            strlen(forth_in) + 1);
+    free(forth_mentionPrep);
+  }
 
   log_info("Prefix number: %d", bot_cmd);
+
   if (bot_cmd == 3 || bot_cmd == 2) {
     char *forth_addon = ": TEST .\" TEST\" ; ";
     char *forth_prep = strdup(forth_in);
