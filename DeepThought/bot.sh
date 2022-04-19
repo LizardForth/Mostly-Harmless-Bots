@@ -1,24 +1,10 @@
-#!/bin/bash
-while true
-do
-OS="`uname`"
-case $OS in
-	'Linux')
-		git fetch origin
-		git reset --hard origin/main
- 		make clean
- 		make -j$(nproc)
- 		clear
-		./bot
-		;;
-	'NetBSD')
-		git fetch origin
-                git reset --hard origin/main
-		make -f Makefile.bsd clean 
-		make -f Makefile.bsd -j4
-		export LD_LIBRARY_PATH=/usr/pkg/lib
-		clear
-		./bot
-		;;
-esac	
-done
+#! /bin/dash
+while true 
+do 
+  changed=0
+  git remote update && git status -uno | grep -q 'Your branch is behind' && changed=1
+  if [ $changed = 1 ]; then
+    ./updater
+  fi
+    ./bot
+done     

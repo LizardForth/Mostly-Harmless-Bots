@@ -4,7 +4,7 @@ HEADERS= ficl.h ficlplatform/unix.h
 # Flags for shared library
 #TARGET= -Dlinux  # riscos MOTO_CPU32 
 SHFLAGS = -fPIC
-CFLAGS= -O $(SHFLAGS) -Wall
+CFLAGS= -O $(SHFLAGS) -w
 CPPFLAGS= $(TARGET) -I.
 CC = cc
 LIB = ar cr
@@ -13,9 +13,9 @@ RANLIB = ranlib
 MAJOR = 4
 MINOR = 1.0
 
-ficl: deepthought.o $(HEADERS) libficl.a
+ficl: deepthought.o updater.o $(HEADERS) libficl.a
 	$(CC) $(CFLAGS) $(LDFLAGS) deepthought.o -o bot -L. -lficl -lm -lcurl -ldiscord -lpthread
-
+	$(CC) $(CFLAGS) $(LDFLAGS) updater.o -o updater -L. -lficl -lm -lcurl -ldiscord -lpthread
 
 lib: libficl.so.$(MAJOR).$(MINOR)
 
@@ -31,13 +31,17 @@ libficl.so.$(MAJOR).$(MINOR): $(OBJECTS)
 	ln -sf libficl.so.$(MAJOR).$(MINOR) libficl.so
 
 main: main.o ficl.h sysdep.h libficl.so.$(MAJOR).$(MINOR)
-	$(CC) $(CFLAGS) $(LDFLAGS) marvin.o -o overlord -L. -lficl -lm -lcurl -ldiscord -lpthread
+	$(CC) $(CFLAGS) $(LDFLAGS) marvin.o -o bot -L. -lficl -lm -lcurl -ldiscord -lpthread
+	$(CC) $(CFLAGS) $(LDFLAGS) updater.o -o updater -L. -lm -ldiscord -lcurl -lpthread
 	ln -sf libficl.so.$(MAJOR).$(MINOR) libficl.so.$(MAJOR)
 
 deepthought: deepthought.o ficl.h sysdep.h libficl.so.$(MAJOR).$(MINOR)
-	$(CC) $(CFLAGS) $(LDFLAGS) marvin.o -o overlord -L. -lficl -lm -ldiscord -lcurl -lpthread
+	$(CC) $(CFLAGS) $(LDFLAGS) marvin.o -o bot -L. -lficl -lm -ldiscord -lcurl -lpthread
 	ln -sf libficl.so.$(MAJOR).$(MINOR) libficl.so.$(MAJOR)
-        
+	
+updater: updater.o ficl.h sysdep.h libficl.so.$(MAJOR).$(MINOR)
+	$(CC) $(CFLAGS) $(LDFLAGS) updater.o -o updater -L. -lm -ldiscord -lcurl -lpthread
+
 # depend explicitly to help finding source files in another subdirectory,
 # and repeat commands since gmake doesn't understand otherwise
 ansi.o: ficlplatform/ansi.c $(HEADERS)
