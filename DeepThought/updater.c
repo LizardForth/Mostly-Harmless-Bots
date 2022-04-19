@@ -13,47 +13,47 @@ void disExitTimerCb(struct discord *bot_client,
 }
 
 void bot_updateRunner(struct discord *bot_client) {
-  struct discord_embed embed = {.color = 4835913,
+  struct discord_embed dis_embed = {.color = 4835913,
                                 .timestamp = discord_timestamp(bot_client),
                                 .title = "Deepthought is updating"};
-  struct discord_create_message params = {
+  struct discord_create_message dis_params = {
       .embeds =
           &(struct discord_embeds){
               .size = 1,
-              .array = &embed,
+              .array = &dis_embed,
           },
   };
-  discord_create_message(bot_client, 966071069255565353, &params, NULL);
+  discord_create_message(bot_client, 966071069255565353, &dis_params, NULL);
   remove("update.log");
   system("git pull");
 #ifdef __linux__
   system("make clean");
-  int status = system("make -j$(nproc) &> update.log");
+  int bot_updateStatus = system("make -j$(nproc) &> update.log");
 #elif __NetBSD__
   system("make -f Makefile.bsd -j4 &> update.log");
-  int status = system("make -f Makefile.bsd -j4 &> update.log");
+  int bot_updateStatus = system("make -f Makefile.bsd -j4 &> update.log");
 #endif
   log_info("%d", status);
   if (status == 0) {
-    embed.title = "Deep thought compiled succesfully";
-    embed.description = "See attached log";
-    struct discord_attachment attachment_arr[] = {
+    dis_embed.title = "Deep thought compiled succesfully";
+    dis_embed.description = "See attached log";
+    struct discord_attachment dis_attachments[] = {
         {.filename = "update.log"},
     };
     struct discord_create_message params = {
         .embeds =
             &(struct discord_embeds){
                 .size = 1,
-                .array = &embed,
+                .array = &dis_embed,
             },
     };
-    discord_create_message(bot_client, 966071069255565353, &params, NULL);
+    discord_create_message(bot_client, 966071069255565353, &dis_params, NULL);
     params.attachments = &(struct discord_attachments){
         .size = 1,
-        .array = attachment_arr,
+        .array = dis_attachments,
     };
-    params.embeds->size = 0;
-    discord_create_message(bot_client, 966071069255565353, &params, NULL);
+    dis_params.embeds->size = 0;
+    discord_create_message(bot_client, 966071069255565353, &dis_params, NULL);
   } else {
     embed.title = "Deepthought failed to compile see attached log";
     embed.description = "See attached log";
