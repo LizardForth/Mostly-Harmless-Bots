@@ -7,7 +7,7 @@ do
     ./updater
   fi
   OS="`uname`"
-  if [ $os = 'NetBSD' ]; then
+  if [ "$os" = "NetBSD" ]; then
     export LD_LIBRARY_PATH=/usr/pkg/lib
   fi
   ./bot
