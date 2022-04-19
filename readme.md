@@ -7,5 +7,4 @@ You can join the server here: [invite](https://discord.gg/zYdewSjau9)
 
 
 ## Deep Thought 
-
-A very wip bot that interprets user commands in forth. 
+A bot that executes user commands as forth code. Implementing a pseudo discord forth api. Very WIP
