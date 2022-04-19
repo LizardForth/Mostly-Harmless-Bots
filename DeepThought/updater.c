@@ -73,7 +73,7 @@ void bot_updateRunner(struct discord *bot_client) {
         .size = 1,
         .array = dis_attachments,
     };
-    params.embeds->size = 0;
+    dis_params.embeds->size = 0;
     discord_create_message(bot_client, 966085554854838332, &dis_params, NULL);
   }
   discord_timer(bot_client, disExitTimerCb, NULL, 5000);
