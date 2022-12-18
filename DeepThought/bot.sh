@@ -1,4 +1,4 @@
-#! /bin/dash
+#! /bin/bash
 while true 
 do 
   changed=0

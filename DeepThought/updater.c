@@ -1,4 +1,5 @@
 #include <concord/discord.h>
+#include <concord/log.h>
 #include <string.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -80,7 +81,7 @@ void bot_updateRunner(struct discord *bot_client) {
     dis_params.embeds->size = 0;
     discord_create_message(bot_client, 966085554854838332, &dis_params, NULL);
   }
-  discord_timer(bot_client, disExitTimerCb, NULL, 5000);
+  discord_timer(bot_client, disExitTimerCb, NULL, NULL, 5000);
 }
 
 int main(void) {

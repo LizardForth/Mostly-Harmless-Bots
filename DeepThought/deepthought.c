@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <concord/discord.h>
+#include <concord/log.h>
 #include <pthread.h>
 #include <signal.h>
 #include <stdio.h>
@@ -45,14 +46,14 @@ static void disPin(ficlVm *forth_vm) {
   bot_client = ficlStackPopPointer(forth_vm->dataStack);
   // all discord centric code and the like can be done now grabbing from stack
   discord_pin_message(bot_client, dis_msg->channel_id,
-                      ficlStackPopInteger(forth_vm->dataStack), NULL);
+                      ficlStackPopInteger(forth_vm->dataStack), NULL, NULL);
 }
 
 static void disMuteCb(struct discord *bot_client,
                       struct discord_timer *dis_timer) {
   log_info("Unmuting: %lu", dis_timer->data);
   discord_remove_guild_member_role(bot_client, 953769673634246757,
-                                   dis_timer->data, 965854189517406238, NULL);
+                                   dis_timer->data, 965854189517406238, NULL, NULL);
 }
 static void disMute(ficlVm *forth_vm) {
   const struct discord_message *dis_msg;
@@ -69,8 +70,8 @@ static void disMute(ficlVm *forth_vm) {
   uint64_t *dis_userid = ficlStackPopInteger(forth_vm->dataStack);
   log_info("Muting: %lu", dis_userid);
   discord_add_guild_member_role(bot_client, 953769673634246757, dis_userid,
-                                965854189517406238, NULL);
-  discord_timer(bot_client, disMuteCb, dis_userid,
+                                965854189517406238, NULL, NULL);
+  discord_timer(bot_client, disMuteCb, NULL, dis_userid,
                 60000 * ficlStackPopInteger(forth_vm->dataStack));
 }
 
@@ -88,7 +89,7 @@ static void disKick(ficlVm *forth_vm) {
   bot_client = ficlStackPopPointer(forth_vm->dataStack);
   uint64_t *dis_userid = ficlStackPopInteger(forth_vm->dataStack);
   log_info("Kicking: %lu", dis_userid);
-  discord_remove_guild_member(bot_client, 953769673634246757, dis_userid, NULL);
+  discord_remove_guild_member(bot_client, 953769673634246757, dis_userid, NULL, NULL);
 }
 
 static void disBan(ficlVm *forth_vm) {
