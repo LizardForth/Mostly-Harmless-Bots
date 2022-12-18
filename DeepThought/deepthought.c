@@ -803,6 +803,7 @@ int main(void) {
   fscanf(tokenFile, "%[^\n]", bot_token);
   struct discord *bot_client = discord_init(bot_token);
 
+  discord_add_intents(bot_client, DISCORD_GATEWAY_MESSAGE_CONTENT);
   discord_set_on_ready(bot_client, &disOnReady);
   discord_set_on_message_create(bot_client, &disOnMessage);
   discord_set_on_message_reaction_add(bot_client, &disOnReactionAdd);
