@@ -799,9 +799,7 @@ int main(void) {
 
   forth_system = ficlSystemCreate(NULL);
 
-  tokenFile = fopen("token.txt", "r");
-  fscanf(tokenFile, "%[^\n]", bot_token);
-  struct discord *bot_client = discord_init(bot_token);
+  struct discord *bot_client = discord_config_init("./config.json");
 
   discord_add_intents(bot_client, DISCORD_GATEWAY_MESSAGE_CONTENT);
   discord_set_on_ready(bot_client, &disOnReady);
