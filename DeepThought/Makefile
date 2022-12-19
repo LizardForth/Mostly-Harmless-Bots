@@ -1,5 +1,5 @@
 OBJECTS= dictionary.o system.o fileaccess.o float.o double.o prefix.o search.o softcore.o stack.o tools.o vm.o primitives.o bit.o lzuncompress.o unix.o utility.o hash.o callback.o word.o extras.o
-HEADERS= ficl.h ficlplatform/unix.h
+HEADERS= ficl.h ficlplatform/unix.h 
 #
 # Flags for shared library
 #TARGET= -Dlinux  # riscos MOTO_CPU32 
@@ -13,8 +13,8 @@ RANLIB = ranlib
 MAJOR = 4
 MINOR = 1.0
 
-ficl: deepthought.o updater.o $(HEADERS) libficl.a
-	$(CC) $(CFLAGS) $(LDFLAGS) deepthought.o -o bot -L. -lficl -lm -lcurl -ldiscord -lpthread
+ficl: cockbot.o updater.o $(HEADERS) libficl.a
+	$(CC) $(CFLAGS) $(LDFLAGS) cockbot.o -o bot -L. -lficl -lm -lcurl -ldiscord -lpthread
 	$(CC) $(CFLAGS) $(LDFLAGS) updater.o -o updater -L. -lficl -lm -lcurl -ldiscord -lpthread
 
 lib: libficl.so.$(MAJOR).$(MINOR)
@@ -31,12 +31,12 @@ libficl.so.$(MAJOR).$(MINOR): $(OBJECTS)
 	ln -sf libficl.so.$(MAJOR).$(MINOR) libficl.so
 
 main: main.o ficl.h sysdep.h libficl.so.$(MAJOR).$(MINOR)
-	$(CC) $(CFLAGS) $(LDFLAGS) marvin.o -o bot -L. -lficl -lm -lcurl -ldiscord -lpthread
+	$(CC) $(CFLAGS) $(LDFLAGS) cockbot.o -o bot -L. -lficl -lm -lcurl -ldiscord -lpthread
 	$(CC) $(CFLAGS) $(LDFLAGS) updater.o -o updater -L. -lm -ldiscord -lcurl -lpthread
 	ln -sf libficl.so.$(MAJOR).$(MINOR) libficl.so.$(MAJOR)
 
-deepthought: deepthought.o ficl.h sysdep.h libficl.so.$(MAJOR).$(MINOR)
-	$(CC) $(CFLAGS) $(LDFLAGS) marvin.o -o bot -L. -lficl -lm -ldiscord -lcurl -lpthread
+cockbot: cockbot.o ficl.h sysdep.h libficl.so.$(MAJOR).$(MINOR)
+	$(CC) $(CFLAGS) $(LDFLAGS) cockbot.o -o bot -L. -lficl -lm -ldiscord -lcurl -lpthread
 	ln -sf libficl.so.$(MAJOR).$(MINOR) libficl.so.$(MAJOR)
 	
 updater: updater.o ficl.h sysdep.h libficl.so.$(MAJOR).$(MINOR)
