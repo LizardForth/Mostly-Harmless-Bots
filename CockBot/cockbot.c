@@ -50,6 +50,60 @@ static void disPin(ficlVm *forth_vm) {
                       ficlStackPopInteger(forth_vm->dataStack), NULL, NULL);
 }
 
+// This code was largely copied from extras.c
+static void disLoadScript(ficlVm *forth_vm) {
+  char loaderBuffer[LINE_BUFFERSIZE];
+  int loaderLine = 0;
+  FILE *loaderFile;
+  int loaderResult = 0;
+
+  ficlCell loaderOldID;
+  ficlString s;
+
+  loaderFile = fopen(ADMIN_SCRIPT, "r");
+
+  loaderOldID = forth_vm->sourceId;
+  forth_vm->sourceId.p = (void *)loaderFile;
+
+  while (fgets(loaderBuffer, LINE_BUFFERSIZE, loaderFile)) {
+    int lineLength = strlen(loaderBuffer) - 1;
+
+    loaderLine++;
+
+    if (lineLength <= 0)
+      continue;
+
+    if (loaderBuffer[lineLength] == '\n')
+      loaderBuffer[lineLength--] == '\0';
+
+    FICL_STRING_SET_POINTER(s, loaderBuffer);
+    FICL_STRING_SET_LENGTH(s, lineLength + 1);
+
+    loaderResult = ficlVmExecuteString(forth_vm, s);
+    switch (loaderResult) {
+    case FICL_VM_STATUS_OUT_OF_TEXT:
+    case FICL_VM_STATUS_USER_EXIT:
+      break;
+
+    default:
+      forth_vm->sourceId = loaderOldID;
+      fclose(loaderFile);
+      ficlVmThrowError(forth_vm, "Error loading script! Line: %d", loaderLine);
+      break;
+    }
+  }
+  forth_vm->sourceId.i = -1;
+  FICL_STRING_SET_FROM_CSTRING(s, "");
+  ficlVmExecuteString(forth_vm, s);
+
+  forth_vm->sourceId = loaderOldID;
+  fclose(loaderFile);
+
+  if (loaderResult == FICL_VM_STATUS_USER_EXIT)
+    ficlVmThrow(forth_vm, FICL_VM_STATUS_USER_EXIT);
+
+  return;
+}
 static void disMuteCb(struct discord *bot_client,
                       struct discord_timer *dis_timer) {
   log_info("Unmuting: %lu", dis_timer->data);
@@ -286,6 +340,75 @@ void accessErrorEmbed(struct discord *bot_client,
       NULL);
 }
 
+void helpEmbed(struct discord *bot_client,
+               const struct discord_message *dis_msg) {
+  struct discord_embed dis_embeds[] = {
+      {.title = "Cockbot Help:",
+       .color = COLOR_SUCCESS,
+       .fields =
+           &(struct discord_embed_fields){
+               .size = 2,
+               .array =
+                   (struct discord_embed_field[]){
+
+                       {.name = "Forth Starter Guide:",
+                        .value = "https://www.forth.com/starting-forth/",
+                        .Inline = false},
+                       {.name = "Forth Starting Guide:",
+                        .value =
+                            "All Cockbot commands are interpreted in a "
+                            "programming language known as forth. This allows "
+                            "you to make scriptable commands, and many other "
+                            "near things! In order to invoke cockbot you must "
+                            "end your command with one of the invokers.",
+                        .Inline = false}}}},
+
+      {.color = COLOR_SUCCESS,
+       .title = "Invokers:",
+       .footer =
+           &(struct discord_embed_footer){
+               .text = "TESTING TESTING",
+               .icon_url = NOACCESS_ICON,
+           },
+       .fields = &(struct discord_embed_fields){
+           .size = 4,
+           .array = (struct discord_embed_field[]){
+               {.name = "!FTH",
+                .value = "Simply executes the command with full output also "
+                         "includes an occasionally helpful error checker that "
+                         "sometimes gives tips.",
+                .Inline = false},
+               {.name = "!HELP",
+                .value = "Shows this help guide.",
+                .Inline = false},
+               {.name = "!ADM",
+                .value = "Same as !FTH but for admins.",
+                .Inline = false},
+               {.name = "!CMD",
+                .value =
+                    "Same as !ADM but wont give a formatted output and wont "
+                    "show input code. It's quite useful for admin scripts.",
+                .Inline = false}}}}};
+
+  discord_create_message(
+      bot_client, dis_msg->channel_id,
+      &(struct discord_create_message){
+          .allowed_mentions =
+              &(struct discord_allowed_mention){
+                  .replied_user = false,
+              },
+          .message_reference =
+              &(struct discord_message_reference){
+                  .message_id = dis_msg->id,
+                  .channel_id = dis_msg->channel_id,
+                  .guild_id = dis_msg->guild_id,
+              },
+          .embeds = &(struct discord_embeds){.size = sizeof(dis_embeds) /
+                                                     sizeof *dis_embeds,
+                                             .array = dis_embeds}},
+      NULL);
+}
+
 int botGetCmd(struct discord *bot_client, const struct discord_message *dis_msg,
               char *forth_in) {
   char *forth_error = (char *)malloc(strlen(forth_in) + 9);
@@ -296,11 +419,16 @@ int botGetCmd(struct discord *bot_client, const struct discord_message *dis_msg,
       hasPostfix(dis_msg->content, "!CMD") ||
       hasPostfix(dis_msg->content, "!fth") ||
       hasPostfix(dis_msg->content, "!adm") ||
-      hasPostfix(dis_msg->content, "!cmd")) {
+      hasPostfix(dis_msg->content, "!cmd") ||
+      hasPostfix(dis_msg->content, "!help") ||
+      hasPostfix(dis_msg->content, "!HELP")) {
     if (hasPostfix(dis_msg->content, "!FTH") ||
         hasPostfix(dis_msg->content, "!fth")) {
       free(forth_error);
       return 1;
+    } else if (hasPostfix(dis_msg->content, "!HELP") ||
+               hasPostfix(dis_msg->content, "!help")) {
+      return 4;
     } else if (hasPostfix(dis_msg->content, "!ADM") ||
                hasPostfix(dis_msg->content, "!CMD") ||
                hasPostfix(dis_msg->content, "!adm") ||
@@ -669,6 +797,8 @@ void *forthRunner(void *input) {
                               ((struct forth_runnerArgs *)input)->dis_msg);
     ficlDictionarySetConstant(forth_dict, "bot_client",
                               ((struct forth_runnerArgs *)input)->bot_client);
+    ficlDictionarySetPrimitive(forth_dict, "load", disLoadScript,
+                               FICL_WORD_DEFAULT);
   }
   ficlDictionarySetPrimitive(forth_dict, "specs", disSpecs, FICL_WORD_DEFAULT);
   log_info("Recieved: %s", ((struct forth_runnerArgs *)input)->forth_in);
@@ -716,7 +846,12 @@ void disOnMessage(struct discord *bot_client,
 
   if (dis_msg->author->bot)
     return;
+
   int bot_cmd = botGetCmd(bot_client, dis_msg, dis_msg->content);
+  if (bot_cmd == 4) {
+    helpEmbed(bot_client, dis_msg);
+    return;
+  }
   if (bot_cmd == 0) {
     return;
   }
@@ -764,6 +899,8 @@ void disOnMessage(struct discord *bot_client,
 
   log_info("Prefix number: %d", bot_cmd);
 
+  // Some Prescript legacy code
+  /*
   if (bot_cmd == 3 || bot_cmd == 2) {
     char *forth_addon = ": TEST .\" TEST\" ; ";
     char *forth_prep = strdup(forth_in);
@@ -773,6 +910,7 @@ void disOnMessage(struct discord *bot_client,
              forth_addon, forth_prep);
     free(forth_prep);
   }
+  */
 
   char *forth_inFormatted = (char *)malloc(strlen(forth_inOld) + 9);
 

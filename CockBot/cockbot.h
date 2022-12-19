@@ -29,3 +29,6 @@
 #define ERROR_ICON                                                             \
   "https://cdn.discordapp.com/emojis/1035654365391900744.webp" // Sad Chicken
                                                                // Emote Picture
+
+#define LINE_BUFFERSIZE 512 // Pretty big but I have a habbit of one liners.
+#define ADMIN_SCRIPT "script.fth"
