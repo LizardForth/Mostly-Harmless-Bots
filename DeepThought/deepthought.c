@@ -621,6 +621,10 @@ void timeoutEmbed(struct discord *bot_client,
 }
 
 void *forthRunner(void *input) {
+  log_info("Starting Forth");
+  forth_system = ficlSystemCreate(NULL);
+  
+
   log_info("Starting Runner");
   ficlVm *forth_vm;
   forth_vm = ficlSystemCreateVm(forth_system);
@@ -653,6 +657,8 @@ void *forthRunner(void *input) {
   }
   fflush(stdout);
   freopen("/dev/tty", "a", stdout);
+  log_info("Destroying ForthVM");
+  ficlSystemDestroy(forth_system);
   pthread_cond_signal(&forth_done);
   pthread_exit(NULL);
 }
@@ -796,8 +802,6 @@ int main(void) {
   pthread_cond_init(&forth_done, NULL);
 
   ccord_global_init();
-
-  forth_system = ficlSystemCreate(NULL);
 
   struct discord *bot_client = discord_config_init("./config.json");
 
