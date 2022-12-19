@@ -179,7 +179,7 @@ void disOnReactionAdd(struct discord *bot_client, u64snowflake dis_userId,
                       u64snowflake dis_guildId,
                       const struct discord_guild_member *dis_member,
                       const struct discord_emoji *dis_emoji) {
-  if (dis_emoji->id != 958592178026852352) {
+  if (dis_emoji->id != POLLO_ID) {
     return;
   }
   struct discord_message dis_msg;
@@ -249,6 +249,11 @@ void accessErrorEmbed(struct discord *bot_client,
                                                         .value = forth_in,
                                                         .Inline = false}}}},
       {.color = 16077157,
+       .footer =
+           &(struct discord_embed_footer){
+               .text = "TESTING TESTING",
+               .icon_url = NOACCESS_ICON,
+           },
        .fields = &(struct discord_embed_fields){
            .size = 2,
            .array = (struct discord_embed_field[]){
@@ -333,6 +338,11 @@ void cmdEmbed(struct discord *bot_client, const struct discord_message *dis_msg,
             .title = dis_embedTitle,
             .color = COLOR_FALIURE,
             .description = forth_out,
+            .footer =
+                &(struct discord_embed_footer){
+                    .text = "TESTING TESTING",
+                    .icon_url = ERROR_ICON,
+                },
         },
     };
     struct discord_create_message dis_params = {
@@ -360,6 +370,11 @@ void cmdEmbed(struct discord *bot_client, const struct discord_message *dis_msg,
             .title = "Command Output",
             .color = COLOR_SUCCESS,
             .description = forth_out,
+            .footer =
+                &(struct discord_embed_footer){
+                    .text = "TESTING TESTING",
+                    .icon_url = SUCCESS_ICON,
+                },
         },
     };
 
@@ -520,6 +535,7 @@ void errEmbed(struct discord *bot_client, const struct discord_message *dis_msg,
   }
   discord_embed_add_field(&dis_embeds[1], "Error Output:", forth_outFormatted,
                           false);
+  discord_embed_set_footer(&dis_embeds[2], "TESTING TESTING", ERROR_ICON, "");
   discord_create_message(
       bot_client, dis_msg->channel_id,
       &(struct discord_create_message){
@@ -555,6 +571,11 @@ void regEmbed(struct discord *bot_client, const struct discord_message *dis_msg,
                                                         .value = forth_in,
                                                         .Inline = false}}}},
       {.color = COLOR_SUCCESS,
+       .footer =
+           &(struct discord_embed_footer){
+               .text = "TESTING TESTING",
+               .icon_url = SUCCESS_ICON,
+           },
        .fields = &(struct discord_embed_fields){
            .size = 1,
            .array = (struct discord_embed_field[]){
@@ -591,6 +612,11 @@ void timeoutEmbed(struct discord *bot_client,
                                                         .value = forth_in,
                                                         .Inline = false}}}},
       {.color = COLOR_FALIURE,
+       .footer =
+           &(struct discord_embed_footer){
+               .text = "TESTING TESTING",
+               .icon_url = NOACCESS_ICON,
+           },
        .fields = &(struct discord_embed_fields){
            .size = 2,
            .array = (struct discord_embed_field[]){
@@ -676,8 +702,8 @@ void forthWatchCat(void *input) {
     log_info("timed out");
     log_info("Killing %d", (pthread_t)input);
     pthread_kill((pthread_t)input, SIGKILL);
+    ficlSystemDestroy(forth_system);
   }
-  ficlSystemDestroy(forth_system);
   pthread_mutex_unlock(&forth_mutex);
   pthread_exit(NULL);
 }
