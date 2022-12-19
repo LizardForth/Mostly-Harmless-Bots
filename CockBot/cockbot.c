@@ -9,6 +9,7 @@
 #include <unistd.h>
 
 #include "ficl.h"
+#include "cockbot.h"
 
 ficlSystem *forth_system;
 
@@ -52,8 +53,8 @@ static void disPin(ficlVm *forth_vm) {
 static void disMuteCb(struct discord *bot_client,
                       struct discord_timer *dis_timer) {
   log_info("Unmuting: %lu", dis_timer->data);
-  discord_remove_guild_member_role(bot_client, 953769673634246757,
-                                   dis_timer->data, 965854189517406238, NULL, NULL);
+  discord_remove_guild_member_role(bot_client, MUTE_ROLE,
+                                   dis_timer->data, MUTE_ROLE, NULL, NULL);
 }
 static void disMute(ficlVm *forth_vm) {
   const struct discord_message *dis_msg;
@@ -69,10 +70,10 @@ static void disMute(ficlVm *forth_vm) {
   bot_client = ficlStackPopPointer(forth_vm->dataStack);
   uint64_t *dis_userid = ficlStackPopInteger(forth_vm->dataStack);
   log_info("Muting: %lu", dis_userid);
-  discord_add_guild_member_role(bot_client, 953769673634246757, dis_userid,
-                                965854189517406238, NULL, NULL);
+  discord_add_guild_member_role(bot_client, MUTE_ROLE, dis_userid,
+                                MUTE_ROLE, NULL, NULL);
   discord_timer(bot_client, disMuteCb, NULL, dis_userid,
-                60000 * ficlStackPopInteger(forth_vm->dataStack));
+                MUTE_TIME * ficlStackPopInteger(forth_vm->dataStack));
 }
 
 static void disKick(ficlVm *forth_vm) {
@@ -89,7 +90,7 @@ static void disKick(ficlVm *forth_vm) {
   bot_client = ficlStackPopPointer(forth_vm->dataStack);
   uint64_t *dis_userid = ficlStackPopInteger(forth_vm->dataStack);
   log_info("Kicking: %lu", dis_userid);
-  discord_remove_guild_member(bot_client, 953769673634246757, dis_userid, NULL, NULL);
+  discord_remove_guild_member(bot_client, GUILD_ID, dis_userid, NULL, NULL);
 }
 
 static void disBan(ficlVm *forth_vm) {
@@ -107,7 +108,7 @@ static void disBan(ficlVm *forth_vm) {
   uint64_t *dis_userid = ficlStackPopInteger(forth_vm->dataStack);
   log_info("Ban: %lu", dis_userid);
   discord_create_guild_ban(
-      bot_client, 953769673634246757, dis_userid,
+      bot_client, GUILD_ID, dis_userid,
       &(struct discord_create_guild_ban){.delete_message_days = 0}, NULL);
 }
 
@@ -126,7 +127,7 @@ static void disDelBan(ficlVm *forth_vm) {
   uint64_t *dis_userid = ficlStackPopInteger(forth_vm->dataStack);
   log_info("Ban: %lu", dis_userid);
   discord_create_guild_ban(
-      bot_client, 953769673634246757, dis_userid,
+      bot_client, GUILD_ID, dis_userid,
       &(struct discord_create_guild_ban){
           .delete_message_days = ficlStackPopInteger(forth_vm->dataStack)},
       NULL);
@@ -152,9 +153,9 @@ void disOnReady(struct discord *bot_client) {
   log_info("Logged in as %s!", dis_bot->username);
   struct discord_activity dis_activities[] = {
       {
-          .name = "with FORTH",
+          .name = BOT_STATUS,
           .type = DISCORD_ACTIVITY_GAME,
-          .details = "AAAAH",
+          .details = BOT_DETAILS,
 
       },
   };
@@ -188,7 +189,7 @@ void disOnReactionAdd(struct discord *bot_client, u64snowflake dis_userId,
   log_info("%s", dis_msg.content);
   for (int i = 0; i < dis_msg.reactions->size; i++) {
     if (dis_msg.reactions->array[i].count > 0 &&
-        dis_msg.reactions->array[i].emoji->id == 958592178026852352) {
+        dis_msg.reactions->array[i].emoji->id == POLLO_ID) {
       log_info("Pollo Count: %d", dis_msg.reactions->array[i].count);
     }
   }
@@ -300,7 +301,7 @@ int botGetCmd(struct discord *bot_client, const struct discord_message *dis_msg,
                hasPostfix(dis_msg->content, "!adm") ||
                hasPostfix(dis_msg->content, "!cmd")) {
       for (int i = 0; i < dis_msg->member->roles->size; i++) {
-        if (dis_msg->member->roles->array[i] == 953785894656147566) {
+        if (dis_msg->member->roles->array[i] == ADMIN_ROLE) {
           log_info("Admin is Executing");
           if (hasPostfix(dis_msg->content, "!ADM") ||
               hasPostfix(dis_msg->content, "!adm")) {
@@ -330,7 +331,7 @@ void cmdEmbed(struct discord *bot_client, const struct discord_message *dis_msg,
     struct discord_embed dis_embeds[] = {
         {
             .title = dis_embedTitle,
-            .color = 16077157,
+            .color = COLOR_FALIURE,
             .description = forth_out,
         },
     };
@@ -357,7 +358,7 @@ void cmdEmbed(struct discord *bot_client, const struct discord_message *dis_msg,
     struct discord_embed dis_embeds[] = {
         {
             .title = "Command Output",
-            .color = 4835913,
+            .color = COLOR_SUCCESS,
             .description = forth_out,
         },
     };
@@ -388,9 +389,9 @@ void errEmbed(struct discord *bot_client, const struct discord_message *dis_msg,
               char *forth_in, char *forth_outFormatted, int forth_rc,
               char *forth_out) {
   struct discord_embed dis_embeds[3] = {0};
-  dis_embeds[0].color = 16077157;
-  dis_embeds[1].color = 16077157;
-  dis_embeds[2].color = 16077157;
+  dis_embeds[0].color = COLOR_FALIURE;
+  dis_embeds[1].color = COLOR_FALIURE;
+  dis_embeds[2].color = COLOR_FALIURE;
   discord_embed_set_title(&dis_embeds[0], "Forth Bot Error:");
 
   discord_embed_add_field(&dis_embeds[0], "Input Code:", forth_in, false);
@@ -546,14 +547,14 @@ void regEmbed(struct discord *bot_client, const struct discord_message *dis_msg,
               char *forth_in, char *forth_out) {
   struct discord_embed dis_embeds[] = {
       {.title = "Forth Bot:",
-       .color = 4835913,
+       .color = COLOR_SUCCESS,
        .fields =
            &(struct discord_embed_fields){
                .size = 1,
                .array = (struct discord_embed_field[]){{.name = "Input Code:",
                                                         .value = forth_in,
                                                         .Inline = false}}}},
-      {.color = 4835913,
+      {.color = COLOR_SUCCESS,
        .fields = &(struct discord_embed_fields){
            .size = 1,
            .array = (struct discord_embed_field[]){
@@ -582,14 +583,14 @@ void timeoutEmbed(struct discord *bot_client,
                   const struct discord_message *dis_msg, char *forth_in) {
   struct discord_embed dis_embeds[] = {
       {.title = "Forth Bot Error: ",
-       .color = 16077157,
+       .color = COLOR_FALIURE,
        .fields =
            &(struct discord_embed_fields){
                .size = 1,
                .array = (struct discord_embed_field[]){{.name = "Input Code:",
                                                         .value = forth_in,
                                                         .Inline = false}}}},
-      {.color = 16077157,
+      {.color = COLOR_FALIURE,
        .fields = &(struct discord_embed_fields){
            .size = 2,
            .array = (struct discord_embed_field[]){
@@ -666,7 +667,7 @@ void *forthRunner(void *input) {
 void forthWatchCat(void *input) {
   struct timespec watchCatTimer;
   clock_gettime(CLOCK_REALTIME, &watchCatTimer);
-  watchCatTimer.tv_sec += 10;
+  watchCatTimer.tv_sec += WATCHCAT_TIME;
 
   log_info("Starting WatchCat");
   pthread_mutex_lock(&forth_mutex);
@@ -696,7 +697,7 @@ void disOnMessage(struct discord *bot_client,
 
   if (strlen(dis_msg->content) > 10002) {
     struct discord_embed dis_embed = {
-        .color = 16077157,
+        .color = COLOR_FALIURE,
     };
 
     discord_embed_set_title(&dis_embed, "Warning");
