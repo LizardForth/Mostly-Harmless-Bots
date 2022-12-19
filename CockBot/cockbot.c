@@ -8,8 +8,8 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "ficl.h"
 #include "cockbot.h"
+#include "ficl.h"
 
 ficlSystem *forth_system;
 
@@ -53,8 +53,8 @@ static void disPin(ficlVm *forth_vm) {
 static void disMuteCb(struct discord *bot_client,
                       struct discord_timer *dis_timer) {
   log_info("Unmuting: %lu", dis_timer->data);
-  discord_remove_guild_member_role(bot_client, MUTE_ROLE,
-                                   dis_timer->data, MUTE_ROLE, NULL, NULL);
+  discord_remove_guild_member_role(bot_client, MUTE_ROLE, dis_timer->data,
+                                   MUTE_ROLE, NULL, NULL);
 }
 static void disMute(ficlVm *forth_vm) {
   const struct discord_message *dis_msg;
@@ -70,10 +70,10 @@ static void disMute(ficlVm *forth_vm) {
   bot_client = ficlStackPopPointer(forth_vm->dataStack);
   uint64_t *dis_userid = ficlStackPopInteger(forth_vm->dataStack);
   log_info("Muting: %lu", dis_userid);
-  discord_add_guild_member_role(bot_client, MUTE_ROLE, dis_userid,
-                                MUTE_ROLE, NULL, NULL);
+  discord_add_guild_member_role(bot_client, MUTE_ROLE, dis_userid, MUTE_ROLE,
+                                NULL, NULL);
   discord_timer(bot_client, disMuteCb, NULL, dis_userid,
-                MUTE_TIME * ficlStackPopInteger(forth_vm->dataStack));
+                60000 * ficlStackPopInteger(forth_vm->dataStack));
 }
 
 static void disKick(ficlVm *forth_vm) {
@@ -624,7 +624,6 @@ void timeoutEmbed(struct discord *bot_client,
 void *forthRunner(void *input) {
   log_info("Starting Forth");
   forth_system = ficlSystemCreate(NULL);
-  
 
   log_info("Starting Runner");
   ficlVm *forth_vm;
@@ -678,6 +677,7 @@ void forthWatchCat(void *input) {
     log_info("Killing %d", (pthread_t)input);
     pthread_kill((pthread_t)input, SIGKILL);
   }
+  ficlSystemDestroy(forth_system);
   pthread_mutex_unlock(&forth_mutex);
   pthread_exit(NULL);
 }
