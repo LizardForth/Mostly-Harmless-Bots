@@ -14,7 +14,7 @@ MAJOR = 4
 MINOR = 1.0
 
 ficl: cockbot.o $(HEADERS) libficl.a
-	$(CC) $(CFLAGS) $(LDFLAGS) cockbot.o -o bot -L. -lficl -lm -lcurl -ldiscord -lpthread
+	$(CC) $(CFLAGS) $(LDFLAGS) cockbot.o -o bot/cockbot -L. -lficl -lm -lcurl -ldiscord -lpthread
 
 lib: libficl.so.$(MAJOR).$(MINOR)
 
@@ -34,7 +34,7 @@ main: main.o ficl.h sysdep.h libficl.so.$(MAJOR).$(MINOR)
 	ln -sf libficl.so.$(MAJOR).$(MINOR) libficl.so.$(MAJOR)
 
 cockbot: cockbot.o ficl.h sysdep.h libficl.so.$(MAJOR).$(MINOR)
-	$(CC) $(CFLAGS) $(LDFLAGS) cockbot.o -o bot -L. -lficl -lm -ldiscord -lcurl -lpthread
+	$(CC) $(CFLAGS) $(LDFLAGS) cockbot.o -o bot/cockbot -L. -lficl -lm -ldiscord -lcurl -lpthread
 	ln -sf libficl.so.$(MAJOR).$(MINOR) libficl.so.$(MAJOR)
 	
 
@@ -64,4 +64,4 @@ ficl/unix.o: ficl/ficlplatform/unix.c $(HEADERS)
 clean:
 	rm -f *.o *.a libficl.* 
 	rm -f ficl/*.o ficl/*.a ficl/libficl.* 
-	rm -rf bot
+	rm -rf bot/cockbot

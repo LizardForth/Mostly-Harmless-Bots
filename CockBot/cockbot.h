@@ -31,4 +31,4 @@
                                                                // Emote Picture
 
 #define LINE_BUFFERSIZE 512 // Pretty big but I have a habbit of one liners.
-#define ADMIN_SCRIPT "script.fth"
+#define ADMIN_SCRIPT "fth-scripts/admin.fth"
