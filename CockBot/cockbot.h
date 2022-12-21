@@ -1,7 +1,22 @@
-// Value's
+// Guards and includes
 // *********************
 
-#define MUTE_ROLE 965854189517406238
+#ifndef COCKBOT_H_INCLUDED
+#define COCKBOT_H_INCLUDED 
+
+#include "ficl/ficl.h"
+
+// *********************
+// Global Forth
+// *********************
+
+extern ficlSystem *forth_system;
+
+// *********************
+// Values
+// *********************
+
+#define MUTE_ROLE 1052842619937501194
 
 #define GUILD_ID 953769673634246757
 
@@ -32,3 +47,5 @@
 
 #define LINE_BUFFERSIZE 512 // Pretty big but I have a habbit of one liners.
 #define ADMIN_SCRIPT "fth-scripts/admin.fth"
+
+#endif
