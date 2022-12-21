@@ -883,8 +883,8 @@ void disOnMessage(struct discord *bot_client,
   char *forth_inOld = (char *)malloc(strlen(forth_in));
 
   strncpy(forth_inOld, forth_in, strlen(forth_in) + 1);
-  char *bot_mentionPrep[32];
-  char *bot_mentionId[32];
+  char *bot_mentionPrep = (char *)malloc(strlen(forth_in));
+  char *bot_mentionId = (char *)malloc(strlen(forth_in));
 
   for (int i = 0; i < dis_msg->mentions->size; i++) {
     char *forth_mentionPrep = strdup(forth_in);
