@@ -9,7 +9,7 @@
 #include <unistd.h>
 
 #include "cockbot.h"
-#include "ficl.h"
+#include "ficl/ficl.h"
 
 ficlSystem *forth_system;
 
