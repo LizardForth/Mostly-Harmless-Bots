@@ -2,7 +2,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include "ficl.h"
+#include "ficl/ficl.h"
 
 
 
