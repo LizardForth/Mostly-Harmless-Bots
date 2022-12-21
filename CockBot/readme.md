@@ -1,38 +1,31 @@
 Deep Thought
 ============
 
-A discord bot that interprets user commands as FORTH code. 
+A discord bot that interprets user commands as FORTH code, making it reasonably scriptable.
 
 ## Technical Details
- - Written horribly in C, using the [Concord API](https://cogmasters.github.io/concord/)
- - Powered by FICL, despite being called Forth *Inspired* Command Language
-   its very powerful and easy to use. 
- - Concord apparently natively pthreads on message recived which is nice.
- - IDK speed comparisons but it almost seems like it interprets forth faster
-   than discord's api response time because the largest delay I notice is in
-   sending messages.
- - It's pretty freaking fast though. 
+ - Written somewhat poorly in C, using the [Concord API](https://cogmasters.github.io/concord/).
+ - Powered by FICL. FICL is mostly ANS-FORTH compatible despite being called Forth *Inspired* Command Language.
+ - Reasonably fast. (fast enough that it can trigger rate limiting)
  
 ## Features
  - Distinction between usecases, allowing admins to interpret code, and
    users to interpret safer code without certain function calls(WIP, I have
    the skeleton code there) 
- - Command mode(WIP), just gives te output.
- - VM saftey, each vm is kept sepperate, and doesnt have access to words
-   removed by `FORGET`(untested, I believe that ANS compliance requires
-   this)
- - Helpful debugging advice as well as tips
- - Beautified output. (I do want to make it prettier)
-
+ - VM saftey, each vm is instanced per command. 
+ - Occasionally helpful debugging advice as well as tips.
+ - An amount of customization(This could be improved significantly)
 ## Setup
- 1. Clone this repo 
- 2. Put your token in a file called token.txt in the base dir
- 3. Run `bot.sh`. This will auto update the bot each time you call for it to be restarted
- 4. Do note as of right now most things are hard coded for my server. 
+ 1. Clone this repo. 
+ 2. Edit the file `cockbot.h`. This includes most of the hardcoded features and it is very important you set these up.
+ 3. Run `make` in this directory.
+ 4. cd into the `bot` subdirectory.
+ 5. Copy `config_default.json` to `config.json`.
+ 6. Add your token to `config.json`.
 
 ## Credits
- The FORTH implementation used by this bot is FICL which can be found
-[here](http://ficl.sourceforge.net/). FICL is licensed as follows:
+The FORTH implementation used by this bot is FICL which can be found [here](http://ficl.sourceforge.net/). 
+FICL is licensed as follows:
 
 Copyright (c) 1997-2001 John Sadler (john_sadler@alum.mit.edu)
 All rights reserved.
