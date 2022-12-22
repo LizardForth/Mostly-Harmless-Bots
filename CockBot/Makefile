@@ -4,7 +4,7 @@ HEADERS= ficl/ficl.h ficl/ficlplatform/unix.h
 # Flags for shared library
 #TARGET= -Dlinux  # riscos MOTO_CPU32 
 SHFLAGS = -fPIC
-CFLAGS= -O $(SHFLAGS) -w
+CFLAGS= -O $(SHFLAGS) -w -Wall
 CPPFLAGS= $(TARGET) -I.
 CC = cc
 LIB = ar cr
@@ -13,7 +13,7 @@ RANLIB = ranlib
 MAJOR = 4
 MINOR = 1.0
 
-ficl: cockbot.o $(HEADERS) libficl.a
+ficl: cockbot.o forthFunctions.o $(HEADERS) libficl.a
 	$(CC) $(CFLAGS) $(LDFLAGS) forthFunctions.o cockbot.o -o bot/cockbot -L. -lficl -lm -lcurl -ldiscord -lpthread
 
 lib: libficl.so.$(MAJOR).$(MINOR)

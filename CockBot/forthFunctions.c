@@ -12,10 +12,10 @@
 #include "ficl/ficl.h"
 #include "forthFunctions.h"
 
-static void disRestart(ficlVm *forth_vm) { raise(SIGINT); }
+void disRestart(ficlVm *forth_vm) { raise(SIGINT); }
 
 // Nice example code that shows args and explains the actual forth discord
-static void disPin(ficlVm *forth_vm) {
+void disPin(ficlVm *forth_vm) {
   const struct discord_message *dis_msg;
   struct discord *bot_client;
   ficlDictionary *forth_dict = ficlVmGetDictionary(forth_vm);
@@ -37,7 +37,7 @@ static void disPin(ficlVm *forth_vm) {
 }
 
 // This code was largely copied from extras.c
-static void disLoadScript(ficlVm *forth_vm) {
+void disLoadScript(ficlVm *forth_vm) {
   char loaderBuffer[LINE_BUFFERSIZE];
   int loaderLine = 0;
   FILE *loaderFile;
@@ -90,13 +90,15 @@ static void disLoadScript(ficlVm *forth_vm) {
 
   return;
 }
-static void disMuteCb(struct discord *bot_client,
+
+void disMuteCb(struct discord *bot_client,
                       struct discord_timer *dis_timer) {
   log_info("Unmuting: %lu", dis_timer->data);
   discord_remove_guild_member_role(bot_client, MUTE_ROLE, dis_timer->data,
                                    MUTE_ROLE, NULL, NULL);
 }
-static void disMute(ficlVm *forth_vm) {
+
+void disMute(ficlVm *forth_vm) {
   const struct discord_message *dis_msg;
   struct discord *bot_client;
   ficlDictionary *forth_dict = ficlVmGetDictionary(forth_vm);
@@ -116,7 +118,7 @@ static void disMute(ficlVm *forth_vm) {
                 60000 * ficlStackPopInteger(forth_vm->dataStack));
 }
 
-static void disKick(ficlVm *forth_vm) {
+void disKick(ficlVm *forth_vm) {
   const struct discord_message *dis_msg;
   struct discord *bot_client;
   ficlDictionary *forth_dict = ficlVmGetDictionary(forth_vm);
@@ -133,7 +135,7 @@ static void disKick(ficlVm *forth_vm) {
   discord_remove_guild_member(bot_client, GUILD_ID, dis_userid, NULL, NULL);
 }
 
-static void disBan(ficlVm *forth_vm) {
+void disBan(ficlVm *forth_vm) {
   const struct discord_message *dis_msg;
   struct discord *bot_client;
   ficlDictionary *forth_dict = ficlVmGetDictionary(forth_vm);
@@ -152,7 +154,7 @@ static void disBan(ficlVm *forth_vm) {
       &(struct discord_create_guild_ban){.delete_message_days = 0}, NULL);
 }
 
-static void disDelBan(ficlVm *forth_vm) {
+void disDelBan(ficlVm *forth_vm) {
   const struct discord_message *dis_msg;
   struct discord *bot_client;
   ficlDictionary *forth_dict = ficlVmGetDictionary(forth_vm);
