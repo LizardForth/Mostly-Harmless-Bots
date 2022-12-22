@@ -1,4 +1,4 @@
-OBJECTS= ficl/dictionary.o ficl/system.o ficl/fileaccess.o ficl/float.o ficl/double.o ficl/prefix.o ficl/search.o ficl/softcore.o ficl/stack.o ficl/tools.o ficl/vm.o ficl/primitives.o ficl/bit.o ficl/lzuncompress.o ficl/unix.o ficl/utility.o ficl/hash.o ficl/callback.o ficl/word.o ficl/extras.o
+OBJECTS= forthFunctions.o ficl/dictionary.o ficl/system.o ficl/fileaccess.o ficl/float.o ficl/double.o ficl/prefix.o ficl/search.o ficl/softcore.o ficl/stack.o ficl/tools.o ficl/vm.o ficl/primitives.o ficl/bit.o ficl/lzuncompress.o ficl/unix.o ficl/utility.o ficl/hash.o ficl/callback.o ficl/word.o ficl/extras.o
 HEADERS= ficl/ficl.h ficl/ficlplatform/unix.h 
 #
 # Flags for shared library
@@ -14,7 +14,7 @@ MAJOR = 4
 MINOR = 1.0
 
 ficl: cockbot.o $(HEADERS) libficl.a
-	$(CC) $(CFLAGS) $(LDFLAGS) cockbot.o -o bot/cockbot -L. -lficl -lm -lcurl -ldiscord -lpthread
+	$(CC) $(CFLAGS) $(LDFLAGS) forthFunctions.o cockbot.o -o bot/cockbot -L. -lficl -lm -lcurl -ldiscord -lpthread
 
 lib: libficl.so.$(MAJOR).$(MINOR)
 
@@ -29,12 +29,8 @@ libficl.so.$(MAJOR).$(MINOR): $(OBJECTS)
 	-o libficl.so.$(MAJOR).$(MINOR) $(OBJECTS)
 	ln -sf libficl.so.$(MAJOR).$(MINOR) libficl.so
 
-main: main.o ficl.h sysdep.h libficl.so.$(MAJOR).$(MINOR)
-	$(CC) $(CFLAGS) $(LDFLAGS) cockbot.o -o bot -L. -lficl -lm -lcurl -ldiscord -lpthread
-	ln -sf libficl.so.$(MAJOR).$(MINOR) libficl.so.$(MAJOR)
-
-cockbot: cockbot.o ficl.h sysdep.h libficl.so.$(MAJOR).$(MINOR)
-	$(CC) $(CFLAGS) $(LDFLAGS) cockbot.o -o bot/cockbot -L. -lficl -lm -ldiscord -lcurl -lpthread
+cockbot: cockbot.o forthFunctions.o ficl.h sysdep.h libficl.so.$(MAJOR).$(MINOR)
+	$(CC) $(CFLAGS) $(LDFLAGS) cockbot.o forthFunctions.o -o bot/cockbot -L. -lficl -lm -ldiscord -lcurl -lpthread
 	ln -sf libficl.so.$(MAJOR).$(MINOR) libficl.so.$(MAJOR)
 	
 

@@ -5,7 +5,7 @@
 #define COCKBOT_H_INCLUDED 
 
 #include "ficl/ficl.h"
-
+#include "forthFunctions.h"
 // *********************
 // Global Forth
 // *********************
