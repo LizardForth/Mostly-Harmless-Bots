@@ -4,7 +4,7 @@ HEADERS= ficl/ficl.h ficl/ficlplatform/unix.h
 # Flags for shared library
 #TARGET= -Dlinux  # riscos MOTO_CPU32 
 SHFLAGS = -fPIC
-CFLAGS= -O $(SHFLAGS) -w -Wall
+CFLAGS= -O $(SHFLAGS) -w -Wall -g
 CPPFLAGS= $(TARGET) -I.
 CC = cc
 LIB = ar cr
@@ -13,8 +13,8 @@ RANLIB = ranlib
 MAJOR = 4
 MINOR = 1.0
 
-ficl: cockbot.o forthFunctions.o $(HEADERS) libficl.a
-	$(CC) $(CFLAGS) $(LDFLAGS) forthFunctions.o cockbot.o -o bot/cockbot -L. -lficl -lm -lcurl -ldiscord -lpthread
+ficl: forthBlocks.o cockbot.o forthFunctions.o discordEvents.o $(HEADERS) libficl.a
+	$(CC) $(CFLAGS) $(LDFLAGS) discordEvents.o forthBlocks.o forthFunctions.o cockbot.o -o bot/cockbot -L. -lficl -lm -lcurl -ldiscord -lpthread
 
 lib: libficl.so.$(MAJOR).$(MINOR)
 
@@ -29,8 +29,8 @@ libficl.so.$(MAJOR).$(MINOR): $(OBJECTS)
 	-o libficl.so.$(MAJOR).$(MINOR) $(OBJECTS)
 	ln -sf libficl.so.$(MAJOR).$(MINOR) libficl.so
 
-cockbot: cockbot.o forthFunctions.o ficl.h sysdep.h libficl.so.$(MAJOR).$(MINOR)
-	$(CC) $(CFLAGS) $(LDFLAGS) cockbot.o forthFunctions.o -o bot/cockbot -L. -lficl -lm -ldiscord -lcurl -lpthread
+cockbot: discordEvents.o cockbot.o forthBlocks.o forthFunctions.o ficl.h sysdep.h libficl.so.$(MAJOR).$(MINOR)
+	$(CC) $(CFLAGS) $(LDFLAGS) cockbot.o forthBlocks.o discordEvents.o forthFunctions.o -o bot/cockbot -L. -lficl -lm -ldiscord -lcurl -lpthread
 	ln -sf libficl.so.$(MAJOR).$(MINOR) libficl.so.$(MAJOR)
 	
 
