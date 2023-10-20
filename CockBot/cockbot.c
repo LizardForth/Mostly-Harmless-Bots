@@ -28,11 +28,17 @@ struct forth_runnerArgs {
 pthread_mutex_t forth_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t forth_done = PTHREAD_COND_INITIALIZER;
 
+
+/*
 int hasPostfix(char *strIn, char *postfix) {
   if (!strcmp(strrchr(strIn, '\0') - strlen(postfix), postfix)) {
     return 1;
   }
   return 0;
+}*/
+
+char* returnPostfix(char* strIn) {
+  return (char*)(strIn + (strlen(strIn) - 4));
 }
 
 char *strReplace(const char *strIn, const char *strMatch,
@@ -150,20 +156,20 @@ void helpEmbed(struct discord *bot_client,
        .fields = &(struct discord_embed_fields){
            .size = 4,
            .array = (struct discord_embed_field[]){
-               {.name = "!FTH",
+               {.name = "!fth",
                 .value = "Simply executes the command with full output also "
                          "includes an occasionally helpful error checker that "
                          "sometimes gives tips.",
                 .Inline = false},
-               {.name = "!HELP",
+               {.name = "!hlp",
                 .value = "Shows this help guide.",
                 .Inline = false},
-               {.name = "!ADM",
+               {.name = "!adm",
                 .value = "Same as !FTH but for admins.",
                 .Inline = false},
-               {.name = "!CMD",
+               {.name = "!cmd",
                 .value =
-                    "Same as !ADM but wont give a formatted output and wont "
+                    "Same as !adm but wont give a formatted output and wont "
                     "show input code. It's quite useful for admin scripts.",
                 .Inline = false}}}}};
 
@@ -186,35 +192,27 @@ void helpEmbed(struct discord *bot_client,
       NULL);
 }
 
-int botGetCmd(struct discord *bot_client, const struct discord_message *dis_msg,
-              char *forth_in) {
+int botGetCmd(
+  struct discord *bot_client, 
+  struct discord_message *dis_msg,
+  char *forth_in
+) {
   char *forth_error = (char *)malloc(strlen(forth_in) + 9);
   snprintf(forth_error, strlen(forth_in) + 9, "``` %s ```", forth_in);
 
-  if (hasPostfix(dis_msg->content, "!FTH") ||
-      hasPostfix(dis_msg->content, "!ADM") ||
-      hasPostfix(dis_msg->content, "!CMD") ||
-      hasPostfix(dis_msg->content, "!fth") ||
-      hasPostfix(dis_msg->content, "!adm") ||
-      hasPostfix(dis_msg->content, "!cmd") ||
-      hasPostfix(dis_msg->content, "!help") ||
-      hasPostfix(dis_msg->content, "!HELP")) {
-    if (hasPostfix(dis_msg->content, "!FTH") ||
-        hasPostfix(dis_msg->content, "!fth")) {
-      free(forth_error);
-      return 1;
-    } else if (hasPostfix(dis_msg->content, "!HELP") ||
-               hasPostfix(dis_msg->content, "!help")) {
-      return 4;
-    } else if (hasPostfix(dis_msg->content, "!ADM") ||
-               hasPostfix(dis_msg->content, "!CMD") ||
-               hasPostfix(dis_msg->content, "!adm") ||
-               hasPostfix(dis_msg->content, "!cmd")) {
+  if (returnPostfix(dis_msg->content) == "!fth") {
+    free(forth_error);
+    return 1;
+  } else if (returnPostfix(dis_msg->content) == "!hlp") {
+    return 4;
+  } else if (
+    returnPostfix(dis_msg->content) == "!adm" ||
+    returnPostfix(dis_msg->content) == "!cmd"
+    ) {
       for (int i = 0; i < dis_msg->member->roles->size; i++) {
         if (dis_msg->member->roles->array[i] == ADMIN_ROLE) {
           log_info("Admin is Executing");
-          if (hasPostfix(dis_msg->content, "!ADM") ||
-              hasPostfix(dis_msg->content, "!adm")) {
+          if (returnPostfix(dis_msg->content) == "!adm") {
 
             free(forth_error);
             return 3;
@@ -228,10 +226,11 @@ int botGetCmd(struct discord *bot_client, const struct discord_message *dis_msg,
       free(forth_error);
       return 0;
     }
-  }
   free(forth_error);
   return 0;
 }
+
+
 
 void cmdEmbed(struct discord *bot_client, const struct discord_message *dis_msg,
               char *forth_in, char *forth_out, int forth_rc) {
@@ -241,7 +240,7 @@ void cmdEmbed(struct discord *bot_client, const struct discord_message *dis_msg,
     struct discord_embed dis_embeds[] = {
         {
             .title = dis_embedTitle,
-            .color = COLOR_FALIURE,
+            .color = COLOR_FAILURE,
             .description = forth_out,
             .footer =
                 &(struct discord_embed_footer){
@@ -309,9 +308,9 @@ void errEmbed(struct discord *bot_client, const struct discord_message *dis_msg,
               char *forth_in, char *forth_outFormatted, int forth_rc,
               char *forth_out) {
   struct discord_embed dis_embeds[3] = {0};
-  dis_embeds[0].color = COLOR_FALIURE;
-  dis_embeds[1].color = COLOR_FALIURE;
-  dis_embeds[2].color = COLOR_FALIURE;
+  dis_embeds[0].color = COLOR_FAILURE;
+  dis_embeds[1].color = COLOR_FAILURE;
+  dis_embeds[2].color = COLOR_FAILURE;
   discord_embed_set_title(&dis_embeds[0], "Forth Bot Error:");
 
   discord_embed_add_field(&dis_embeds[0], "Input Code:", forth_in, false);
@@ -509,14 +508,14 @@ void timeoutEmbed(struct discord *bot_client,
                   const struct discord_message *dis_msg, char *forth_in) {
   struct discord_embed dis_embeds[] = {
       {.title = "Forth Bot Error: ",
-       .color = COLOR_FALIURE,
+       .color = COLOR_FAILURE,
        .fields =
            &(struct discord_embed_fields){
                .size = 1,
                .array = (struct discord_embed_field[]){{.name = "Input Code:",
                                                         .value = forth_in,
                                                         .Inline = false}}}},
-      {.color = COLOR_FALIURE,
+      {.color = COLOR_FAILURE,
        .footer =
            &(struct discord_embed_footer){
                .text = "TESTING TESTING",
@@ -635,7 +634,7 @@ void disOnMessage(struct discord *bot_client,
 
   if (strlen(dis_msg->content) > 10002) {
     struct discord_embed dis_embed = {
-        .color = COLOR_FALIURE,
+        .color = COLOR_FAILURE,
     };
 
     discord_embed_set_title(&dis_embed, "Warning");
@@ -653,6 +652,7 @@ void disOnMessage(struct discord *bot_client,
     discord_create_message(bot_client, dis_msg->channel_id, &dis_params, NULL);
     return;
   }
+  
   char *forth_in = (char *)malloc(strlen(dis_msg->content) - 3);
   strncpy(forth_in, dis_msg->content, strlen(dis_msg->content) - 4);
   forth_in[strlen(dis_msg->content) - 4] = 0;
