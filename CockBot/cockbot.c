@@ -28,17 +28,8 @@ struct forth_runnerArgs {
 pthread_mutex_t forth_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t forth_done = PTHREAD_COND_INITIALIZER;
 
-
-/*
 int hasPostfix(char *strIn, char *postfix) {
-  if (!strcmp(strrchr(strIn, '\0') - strlen(postfix), postfix)) {
-    return 1;
-  }
-  return 0;
-}*/
-
-char* returnPostfix(char* strIn) {
-  return (char*)(strIn + (strlen(strIn) - 4));
+  return (!strcmp(&strIn[strlen(strIn)-4], postfix));
 }
 
 char *strReplace(const char *strIn, const char *strMatch,
@@ -56,8 +47,8 @@ char *strReplace(const char *strIn, const char *strMatch,
   }
 
   // Making new string of enough length
-  char *strOut =
-      (char *)malloc(i + count * (strlen(strReplace) - strlen(strMatch)) + 1);
+  char *strOut = 
+    (char *)malloc(i + count * (strlen(strReplace) - strlen(strMatch)) + 1);
 
   i = 0;
   while (*strIn) {
@@ -95,8 +86,8 @@ void accessErrorEmbed(struct discord *bot_client,
            .size = 2,
            .array = (struct discord_embed_field[]){
                {.name = "Error Explanation:",
-                .value = "Your code access a function or did something that "
-                         "triggered one of our saftey checks. **Please don't "
+                .value = "Your code accessed a function or did something that "
+                         "triggered one of our safety checks. **Please don't "
                          "do that again**.",
                 .Inline = false},
                {.name = "Output:",
@@ -139,10 +130,10 @@ void helpEmbed(struct discord *bot_client,
                         .Inline = false},
                        {.name = "Forth Starting Guide:",
                         .value =
-                            "All Cockbot commands are interpreted in a "
+                            "All CockBot commands are interpreted in a "
                             "programming language known as forth. This allows "
-                            "you to make scriptable commands, and many other "
-                            "near things! In order to invoke cockbot you must "
+                            "you to create scriptable commands, and many other "
+                            "neat things! In order to invoke CockBot you must "
                             "end your command with one of the invokers.",
                         .Inline = false}}}},
 
@@ -168,9 +159,8 @@ void helpEmbed(struct discord *bot_client,
                 .value = "Same as !FTH but for admins.",
                 .Inline = false},
                {.name = "!cmd",
-                .value =
-                    "Same as !adm but wont give a formatted output and wont "
-                    "show input code. It's quite useful for admin scripts.",
+                .value = "Same as !adm but won't return the input or formatted "
+                         "output code. It's quite useful for admin scripts.",
                 .Inline = false}}}}};
 
   discord_create_message(
@@ -192,6 +182,7 @@ void helpEmbed(struct discord *bot_client,
       NULL);
 }
 
+// command parsing
 int botGetCmd(
   struct discord *bot_client, 
   struct discord_message *dis_msg,
@@ -200,20 +191,31 @@ int botGetCmd(
   char *forth_error = (char *)malloc(strlen(forth_in) + 9);
   snprintf(forth_error, strlen(forth_in) + 9, "``` %s ```", forth_in);
 
-  if (returnPostfix(dis_msg->content) == "!fth") {
+  if (
+    hasPostfix(dis_msg->content, "!fth") ||
+    hasPostfix(dis_msg->content, "!FTH")
+  ) {
     free(forth_error);
     return 1;
-  } else if (returnPostfix(dis_msg->content) == "!hlp") {
+  } else if (
+    hasPostfix(dis_msg->content, "!hlp") ||
+    hasPostfix(dis_msg->content, "!HLP")
+    ) {
+    free(forth_error);
     return 4;
   } else if (
-    returnPostfix(dis_msg->content) == "!adm" ||
-    returnPostfix(dis_msg->content) == "!cmd"
+    hasPostfix(dis_msg->content, "!adm") ||
+    hasPostfix(dis_msg->content, "!ADM") ||
+    hasPostfix(dis_msg->content, "!cmd") ||
+    hasPostfix(dis_msg->content, "!CMD")
     ) {
       for (int i = 0; i < dis_msg->member->roles->size; i++) {
         if (dis_msg->member->roles->array[i] == ADMIN_ROLE) {
-          log_info("Admin is Executing");
-          if (returnPostfix(dis_msg->content) == "!adm") {
-
+          // log_info("Admin is Executing");
+          if (
+            hasPostfix(dis_msg->content,"!adm") ||
+            hasPostfix(dis_msg->content,"!ADM")
+          ) {
             free(forth_error);
             return 3;
           } else {
@@ -229,7 +231,6 @@ int botGetCmd(
   free(forth_error);
   return 0;
 }
-
 
 
 void cmdEmbed(struct discord *bot_client, const struct discord_message *dis_msg,
@@ -655,11 +656,11 @@ void disOnMessage(struct discord *bot_client,
   
   char *forth_in = (char *)malloc(strlen(dis_msg->content) - 3);
   strncpy(forth_in, dis_msg->content, strlen(dis_msg->content) - 4);
-  forth_in[strlen(dis_msg->content) - 4] = 0;
+  forth_in[strlen(dis_msg->content) - 4] = '\0';
 
   int forth_rc;
 
-  char *forth_inOld = (char *)malloc(strlen(forth_in));
+  char *forth_inOld = (char *)malloc(strlen(forth_in) + 1);
 
   strncpy(forth_inOld, forth_in, strlen(forth_in) + 1);
   char *bot_mentionPrep = (char *)malloc(strlen(forth_in));
@@ -672,7 +673,11 @@ void disOnMessage(struct discord *bot_client,
     strncpy(forth_in, strReplace(forth_in, bot_mentionPrep, bot_mentionId),
             strlen(forth_in) + 1);
     free(forth_mentionPrep);
+    free(strReplace);
   }
+
+  free(bot_mentionId);
+  free(bot_mentionPrep);
 
   log_info("Prefix number: %d", bot_cmd);
 
@@ -711,8 +716,8 @@ void disOnMessage(struct discord *bot_client,
   forth_rc = forth_runnerIn->forth_rc;
 
   log_info("Exit Code: %d", forth_rc);
-  snprintf(forth_outFormatted, strlen(forth_out) + 9, "``` %s ```", forth_out);
-  snprintf(forth_inFormatted, strlen(forth_inOld) + 9, "``` %s ```",
+  snprintf(forth_outFormatted, strlen(forth_out) + 10, "``` %s ```", forth_out);
+  snprintf(forth_inFormatted, strlen(forth_inOld) + 10, "``` %s ```",
            forth_inOld);
 
   log_info("Output: %s", forth_out);
