@@ -28,7 +28,7 @@ extern ficlSystem *forth_system;
 
 // Convert regular rgb hex to decimal.
 #define COLOR_SUCCESS 4835913  // #49CA49
-#define COLOR_FALIURE 16077157 // #F55165
+#define COLOR_FAILURE 16077157 // #F55165
 
 #define WATCHCAT_TIME                                                          \
   10 // If a given command takes longer than the said time in seconds it will

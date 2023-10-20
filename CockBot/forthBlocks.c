@@ -26,7 +26,8 @@ void forthUse(ficlVm *forth_vm){
         ficlVmTextOut(forth_vm, "ERROR: Can't use blocks with names longer than 8 Charters.\n");
         ficlVmThrow(forth_vm, FICL_VM_STATUS_QUIT);     
         return;
-    } 
+    }
+
     log_info("Pointer 1: %p", block_fname);
     log_info("Pointer 2: %p", string_address);
     memcpy(block_fname, string_address, string_length);
@@ -47,6 +48,7 @@ void forthUse(ficlVm *forth_vm){
         block_ff->f = block_fs;
         ficlStackPushPointer(forth_vm->dataStack, block_ff);
     }
+    
     log_info("Loaded: %s", block_fname);
     free(block_fname);
 }
