@@ -55,7 +55,7 @@ void forthUse(ficlVm *forth_vm){
 void forthBlock(ficlVm *forth_vm) {
     int block_number = ficlStackPopInteger(forth_vm->dataStack);
     ficlFile *block_ff = (ficlFile *)ficlStackPopPointer(forth_vm->dataStack);
-    char *buffer_line[66];
+    char buffer_line[66];
     int block_line = 0;
     char c;
     for (c = getc(block_ff->f); block_line != 16*block_number; c = getc(block_ff->f)) {

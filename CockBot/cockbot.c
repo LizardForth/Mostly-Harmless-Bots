@@ -597,7 +597,7 @@ void *forthRunner(void *input) {
   pthread_exit(NULL);
 }
 
-void forthWatchCat(void *input) {
+void *forthWatchCat(void *input) {
   struct timespec watchCatTimer;
   clock_gettime(CLOCK_REALTIME, &watchCatTimer);
   watchCatTimer.tv_sec += WATCHCAT_TIME;
@@ -613,6 +613,7 @@ void forthWatchCat(void *input) {
   }
   pthread_mutex_unlock(&forth_mutex);
   pthread_exit(NULL);
+  return NULL;
 }
 
 void disOnMessage(struct discord *bot_client,
@@ -673,7 +674,6 @@ void disOnMessage(struct discord *bot_client,
     strncpy(forth_in, strReplace(forth_in, bot_mentionPrep, bot_mentionId),
             strlen(forth_in) + 1);
     free(forth_mentionPrep);
-    free(strReplace);
   }
 
   free(bot_mentionId);

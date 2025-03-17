@@ -24,7 +24,7 @@ extern ficlSystem *forth_system;
 
 #define ADMIN_ROLE 1235943635888111637
 
-#define POLLO_ID 953769673634246757 // Emoji ID are fairly annoying to get.
+#define POLLO_ID 958592178026852352 // Emoji ID are fairly annoying to get.
 
 // Convert regular rgb hex to decimal.
 #define COLOR_SUCCESS 4835913  // #49CA49

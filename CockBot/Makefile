@@ -1,18 +1,20 @@
 OBJECTS= forthFunctions.o ficl/dictionary.o ficl/system.o ficl/fileaccess.o ficl/float.o ficl/double.o ficl/prefix.o ficl/search.o ficl/softcore.o ficl/stack.o ficl/tools.o ficl/vm.o ficl/primitives.o ficl/bit.o ficl/lzuncompress.o ficl/unix.o ficl/utility.o ficl/hash.o ficl/callback.o ficl/word.o ficl/extras.o
-HEADERS= ficl/ficl.h ficl/ficlplatform/unix.h 
+HEADERS= ficl/ficl.h ficl/ficlplatform/unix.h
 #
 # Flags for shared library
-#TARGET= -Dlinux  # riscos MOTO_CPU32 
+#TARGET= -Dlinux  # riscos MOTO_CPU32
 SHFLAGS = -fPIC
-SHUTUPFLAGS=-Wno-int-conversion -Wno-incompatible-function-pointer-types -Wpedantic -Wno-implicit-function-declaration
-CFLAGS= -O $(SHFLAGS) $(SHUTUPFLAGS) -w -Wall -g -fsanitize=address
+SHUTUPFLAGS=-Wno-int-conversion -Wno-incompatible-function-pointer-types -Wno-implicit-function-declaration
+CFLAGS= -O $(SHFLAGS) $(SHUTUPFLAGS) -w -Wall -g -fsanitize=address -Wpedantic 
 CPPFLAGS= $(TARGET) -I.
-CC = clang
-LIB = ar cr
-RANLIB = ranlib
+LIB = ar crs
 
 MAJOR = 4
 MINOR = 1.0
+
+.PHONY: all clean lib
+
+all: ficl
 
 ficl: forthBlocks.o cockbot.o forthFunctions.o discordEvents.o $(HEADERS) libficl.a
 	$(CC) $(CFLAGS) $(LDFLAGS) discordEvents.o forthBlocks.o forthFunctions.o cockbot.o -o bot/cockbot -L. -lficl -lm -lcurl -ldiscord -lpthread
@@ -22,7 +24,6 @@ lib: libficl.so.$(MAJOR).$(MINOR)
 # static library build
 libficl.a: $(OBJECTS)
 	$(LIB) libficl.a $(OBJECTS)
-	$(RANLIB) libficl.a
 
 # shared library build
 libficl.so.$(MAJOR).$(MINOR): $(OBJECTS)
@@ -30,10 +31,10 @@ libficl.so.$(MAJOR).$(MINOR): $(OBJECTS)
 	-o libficl.so.$(MAJOR).$(MINOR) $(OBJECTS)
 	ln -sf libficl.so.$(MAJOR).$(MINOR) libficl.so
 
-cockbot: discordEvents.o cockbot.o forthBlocks.o forthFunctions.o ficl.h sysdep.h libficl.so.$(MAJOR).$(MINOR)
+cockbot: discordEvents.o cockbot.o forthBlocks.o forthFunctions.o ficl/ficl.h ficl/sysdep.h libficl.so.$(MAJOR).$(MINOR)
 	$(CC) $(CFLAGS) $(LDFLAGS) cockbot.o forthBlocks.o discordEvents.o forthFunctions.o -o bot/cockbot -L. -lficl -lm -ldiscord -lcurl -lpthread
 	ln -sf libficl.so.$(MAJOR).$(MINOR) libficl.so.$(MAJOR)
-	
+
 
 # depend explicitly to help finding source files in another subdirectory,
 # and repeat commands since gmake doesn't understand otherwise
@@ -50,15 +51,10 @@ ficl/unix.o: ficl/ficlplatform/unix.c $(HEADERS)
 .c.o:
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
 
-.cxx.o:
-	$(CPP) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-.cc.o:
-	$(CPP) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 #
 #       generic cleanup code
 #
 clean:
-	rm -f *.o *.a libficl.* 
-	rm -f ficl/*.o ficl/*.a ficl/libficl.* 
+	rm -f *.o *.a libficl.*
+	rm -f ficl/*.o ficl/*.a ficl/libficl.*
 	rm -rf bot/cockbot
