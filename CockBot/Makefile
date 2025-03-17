@@ -1,11 +1,13 @@
+.POSIX:
 OBJECTS= forthFunctions.o ficl/dictionary.o ficl/system.o ficl/fileaccess.o ficl/float.o ficl/double.o ficl/prefix.o ficl/search.o ficl/softcore.o ficl/stack.o ficl/tools.o ficl/vm.o ficl/primitives.o ficl/bit.o ficl/lzuncompress.o ficl/unix.o ficl/utility.o ficl/hash.o ficl/callback.o ficl/word.o ficl/extras.o
 HEADERS= ficl/ficl.h ficl/ficlplatform/unix.h
 #
 # Flags for shared library
 #TARGET= -Dlinux  # riscos MOTO_CPU32
 SHFLAGS = -fPIC
-SHUTUPFLAGS=-Wno-int-conversion -Wno-incompatible-function-pointer-types -Wno-implicit-function-declaration
+SHUTUPFLAGS=-Wno-int-conversion
 CFLAGS= -O $(SHFLAGS) $(SHUTUPFLAGS) -w -Wall -g -fsanitize=address -Wpedantic 
+CC=cc
 CPPFLAGS= $(TARGET) -I.
 LIB = ar crs
 
@@ -16,8 +18,8 @@ MINOR = 1.0
 
 all: ficl
 
-ficl: forthBlocks.o cockbot.o forthFunctions.o discordEvents.o $(HEADERS) libficl.a
-	$(CC) $(CFLAGS) $(LDFLAGS) discordEvents.o forthBlocks.o forthFunctions.o cockbot.o -o bot/cockbot -L. -lficl -lm -lcurl -ldiscord -lpthread
+ficl: cockbot.o forthFunctions.o discordEvents.o $(HEADERS) libficl.a
+	$(CC) $(CFLAGS) $(LDFLAGS) discordEvents.o  forthFunctions.o cockbot.o -o bot/cockbot -L. -lficl -lm -lcurl -ldiscord -lpthread
 
 lib: libficl.so.$(MAJOR).$(MINOR)
 
@@ -31,8 +33,8 @@ libficl.so.$(MAJOR).$(MINOR): $(OBJECTS)
 	-o libficl.so.$(MAJOR).$(MINOR) $(OBJECTS)
 	ln -sf libficl.so.$(MAJOR).$(MINOR) libficl.so
 
-cockbot: discordEvents.o cockbot.o forthBlocks.o forthFunctions.o ficl/ficl.h ficl/sysdep.h libficl.so.$(MAJOR).$(MINOR)
-	$(CC) $(CFLAGS) $(LDFLAGS) cockbot.o forthBlocks.o discordEvents.o forthFunctions.o -o bot/cockbot -L. -lficl -lm -ldiscord -lcurl -lpthread
+cockbot: discordEvents.o cockbot.o  forthFunctions.o ficl/ficl.h ficl/sysdep.h libficl.so.$(MAJOR).$(MINOR)
+	$(CC) $(CFLAGS) $(LDFLAGS) cockbot.o discordEvents.o forthFunctions.o -o bot/cockbot -L. -lficl -lm -ldiscord -lcurl -lpthread
 	ln -sf libficl.so.$(MAJOR).$(MINOR) libficl.so.$(MAJOR)
 
 

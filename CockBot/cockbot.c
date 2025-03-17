@@ -12,7 +12,6 @@
 #include "ficl/ficl.h"
 #include "forthFunctions.h"
 #include "discordEvents.h"
-#include "forthBlocks.h"
 
 ficlSystem *forth_system;
 
@@ -576,8 +575,6 @@ void *forthRunner(void *input) {
     ficlDictionarySetPrimitive(forth_dict, "load", disLoadScript,
                                FICL_WORD_DEFAULT);
   }
-  ficlDictionarySetPrimitive(forth_dict, "block", forthBlock, FICL_WORD_DEFAULT);
-  ficlDictionarySetPrimitive(forth_dict, "use", forthUse, FICL_WORD_DEFAULT);
 
   log_info("Recieved: %s", ((struct forth_runnerArgs *)input)->forth_in);
   fflush(stdout);
