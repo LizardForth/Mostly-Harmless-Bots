@@ -1,0 +1,5 @@
+*.[ao]
+config.json
+CockBot/bot/cockbot
+bot.log
+http.log

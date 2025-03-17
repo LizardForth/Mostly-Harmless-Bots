@@ -4,7 +4,8 @@ HEADERS= ficl/ficl.h ficl/ficlplatform/unix.h
 # Flags for shared library
 #TARGET= -Dlinux  # riscos MOTO_CPU32 
 SHFLAGS = -fPIC
-CFLAGS= -O $(SHFLAGS) -w -Wall -g -fsanitize=address
+SHUTUPFLAGS=-Wno-int-conversion -Wno-incompatible-function-pointer-types -Wpedantic -Wno-implicit-function-declaration
+CFLAGS= -O $(SHFLAGS) $(SHUTUPFLAGS) -w -Wall -g -fsanitize=address
 CPPFLAGS= $(TARGET) -I.
 CC = clang
 LIB = ar cr
