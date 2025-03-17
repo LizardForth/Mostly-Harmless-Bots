@@ -22,7 +22,7 @@ extern ficlSystem *forth_system;
 #define BOT_STATUS "with FORTH" // Will display next to name
 #define BOT_DETAILS "AAAAH"
 
-#define ADMIN_ROLE 953785894656147566
+#define ADMIN_ROLE 1235943635888111637
 
 #define POLLO_ID 953769673634246757 // Emoji ID are fairly annoying to get.
 
