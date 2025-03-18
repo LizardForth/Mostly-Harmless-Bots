@@ -1,0 +1,3 @@
+[submodule "extern/concord"]
+	path = extern/concord
+	url = https://github.com/cogmasters/concord

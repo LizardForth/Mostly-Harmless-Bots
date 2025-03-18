@@ -1,6 +1,6 @@
 #include <assert.h>
-#include <concord/discord.h>
-#include <concord/log.h>
+#include <discord.h>
+#include <log.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
