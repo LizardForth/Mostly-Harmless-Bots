@@ -2,7 +2,7 @@
 #define FUNCTIONS_H_INCLUDED
 
 #include "ficl/ficl.h"
-#include "discord.h"
+#include "concord/discord.h"
 
 void disPin(ficlVm *forth_vm);
 
