@@ -1,6 +1,6 @@
 #include <assert.h>
-#include <concord/discord.h>
-#include <concord/log.h>
+#include <discord.h>
+#include <log.h>
 #include <pthread.h>
 #include <signal.h>
 #include <stdio.h>
@@ -751,7 +751,7 @@ int main(void) {
 
   struct discord *bot_client = discord_config_init("./config.json");
 
-  discord_add_intents(bot_client, DISCORD_GATEWAY_MESSAGE_CONTENT);
+  // discord_add_intents(bot_client, DISCORD_GATEWAY_MESSAGE_CONTENT);
   discord_set_on_ready(bot_client, &disOnReady);
   discord_set_on_message_create(bot_client, &disOnMessage);
   discord_set_on_message_reaction_add(bot_client, &disOnReactionAdd);

@@ -21,7 +21,7 @@ all: ficl
 ficl: cockbot.o forthFunctions.o discordEvents.o $(HEADERS) libficl.a
 	$(CC) $(CFLAGS) $(LDFLAGS) discordEvents.o  forthFunctions.o cockbot.o -o bot/cockbot -L. -lficl -lm -lcurl -ldiscord -lpthread
 
-lib: libficl.so.$(MAJOR).$(MINOR)
+lib: libficl.so.$(MAJOR).$(MINOR) ../concord/lib/libdiscord.a
 
 # static library build
 libficl.a: $(OBJECTS)
@@ -32,6 +32,9 @@ libficl.so.$(MAJOR).$(MINOR): $(OBJECTS)
 	$(CC) $(LDFLAGS) -shared -Wl,-soname,libficl.so.$(MAJOR).$(MINOR) \
 	-o libficl.so.$(MAJOR).$(MINOR) $(OBJECTS)
 	ln -sf libficl.so.$(MAJOR).$(MINOR) libficl.so
+
+../concord/lib/libdiscord.a:
+	$(MAKE) -C ../concord
 
 cockbot: discordEvents.o cockbot.o  forthFunctions.o ficl/ficl.h ficl/sysdep.h libficl.so.$(MAJOR).$(MINOR)
 	$(CC) $(CFLAGS) $(LDFLAGS) cockbot.o discordEvents.o forthFunctions.o -o bot/cockbot -L. -lficl -lm -ldiscord -lcurl -lpthread
