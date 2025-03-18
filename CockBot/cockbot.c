@@ -1,7 +1,6 @@
 #include <assert.h>
-#include "discord.h"
-#include <errno.h>
-#include <log.h>
+#include <concord/discord.h>
+#include <concord/log.h>
 #include <pthread.h>
 #include <signal.h>
 #include <stdio.h>
@@ -13,8 +12,6 @@
 #include "ficl/ficl.h"
 #include "forthFunctions.h"
 #include "discordEvents.h"
-
-#include <sys/resource.h>
 
 ficlSystem *forth_system;
 
@@ -742,13 +739,7 @@ void disOnMessage(struct discord *bot_client,
   free(forth_runnerIn);
 }
 
-#define MAX_MEM (128 * 1024 * 1024)
-
 int main(void) {
-  if (setrlimit(RLIMIT_AS, &(struct rlimit) { .rlim_cur = MAX_MEM, .rlim_max = MAX_MEM + (1024 * 1024 * 2) }) != 0) {
-    log_fatal("Can't set maximum memory: %s", strerror(errno));
-    return 1;
-  };
 
   forth_system = ficlSystemCreate(NULL);
   char bot_token[100];
@@ -760,7 +751,7 @@ int main(void) {
 
   struct discord *bot_client = discord_config_init("./config.json");
 
-  // discord_add_intents(bot_client, DISCORD_GATEWAY_MESSAGE_CONTENT);
+  discord_add_intents(bot_client, DISCORD_GATEWAY_MESSAGE_CONTENT);
   discord_set_on_ready(bot_client, &disOnReady);
   discord_set_on_message_create(bot_client, &disOnMessage);
   discord_set_on_message_reaction_add(bot_client, &disOnReactionAdd);
