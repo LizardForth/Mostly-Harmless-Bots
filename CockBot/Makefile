@@ -6,7 +6,9 @@ HEADERS= ficl/ficl.h ficl/ficlplatform/unix.h
 #TARGET= -Dlinux  # riscos MOTO_CPU32
 SHFLAGS = -fPIC
 SHUTUPFLAGS= -Wno-int-conversion
-CFLAGS= -O $(SHFLAGS) $(SHUTUPFLAGS) -w -Wall -g -Wpedantic -fsanitize=address
+CFLAGS= -O $(SHFLAGS) $(SHUTUPFLAGS) \
+				-w -Wall -g -Wpedantic -fsanitize=address \
+				-I../extern/concord/include -I../extern/concord/core/ -I../extern/concord/gencodecs
 CC=clang
 CPPFLAGS= $(TARGET) -I.
 LIB = ar crs
@@ -18,10 +20,10 @@ MINOR = 1.0
 
 all: ficl
 
-ficl: cockbot.o forthFunctions.o discordEvents.o $(HEADERS) libficl.a
-	$(CC) $(CFLAGS) $(LDFLAGS) discordEvents.o  forthFunctions.o cockbot.o -o bot/cockbot -L. -lficl -lm -lcurl -ldiscord -lpthread
+ficl: lib cockbot.o forthFunctions.o discordEvents.o $(HEADERS) libficl.a
+	$(CC) $(CFLAGS) $(LDFLAGS) discordEvents.o  forthFunctions.o cockbot.o -o bot/cockbot -L. -lficl -lm -lcurl -ldiscord -lpthread -L../extern/concord/lib -ldiscord
 
-lib: libficl.so.$(MAJOR).$(MINOR) ../concord/lib/libdiscord.a
+lib: ../extern/concord/lib/libdiscord.a libficl.so.$(MAJOR).$(MINOR)
 
 # static library build
 libficl.a: $(OBJECTS)
@@ -33,8 +35,10 @@ libficl.so.$(MAJOR).$(MINOR): $(OBJECTS)
 	-o libficl.so.$(MAJOR).$(MINOR) $(OBJECTS)
 	ln -sf libficl.so.$(MAJOR).$(MINOR) libficl.so
 
-../concord/lib/libdiscord.a:
-	$(MAKE) -C ../concord
+.PHONY: ../extern/concord/lib/libdiscord.a
+../extern/concord/lib/libdiscord.a:
+	cd ../extern/concord/ && $(MAKE) -f Makefile
+	cd ../extern/concord/ && $(MAKE) -f Makefile gencodecs
 
 cockbot: discordEvents.o cockbot.o  forthFunctions.o ficl/ficl.h ficl/sysdep.h libficl.so.$(MAJOR).$(MINOR)
 	$(CC) $(CFLAGS) $(LDFLAGS) cockbot.o discordEvents.o forthFunctions.o -o bot/cockbot -L. -lficl -lm -ldiscord -lcurl -lpthread
