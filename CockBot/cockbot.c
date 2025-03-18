@@ -1,5 +1,5 @@
 #include <assert.h>
-#include <discord.h>
+#include "discord.h"
 #include <log.h>
 #include <pthread.h>
 #include <signal.h>
