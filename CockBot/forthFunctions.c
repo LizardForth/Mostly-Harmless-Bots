@@ -99,7 +99,7 @@ void disUnOhio(ficlVm *forth_vm) {
   FICL_STRING_SET_FROM_CSTRING(tempString1, "bot_client");
   ficlVmExecuteWord(forth_vm, ficlDictionaryLookup(forth_dict, tempString1));
   bot_client = ficlStackPopPointer(forth_vm->dataStack);
-  uint64_t *dis_userid = ficlStackPopInteger(forth_vm->dataStack);
+  uint64_t dis_userid = ficlStackPopInteger(forth_vm->dataStack);
   log_info("Muting: %lu", dis_userid);
   discord_remove_guild_member_role(bot_client, GUILD_ID, dis_userid, MUTE_ROLE,
                                 NULL, NULL);
@@ -114,7 +114,7 @@ void disOhio(ficlVm *forth_vm) {
   FICL_STRING_SET_FROM_CSTRING(tempString1, "bot_client");
   ficlVmExecuteWord(forth_vm, ficlDictionaryLookup(forth_dict, tempString1));
   bot_client = ficlStackPopPointer(forth_vm->dataStack);
-  uint64_t *dis_userid = ficlStackPopInteger(forth_vm->dataStack);
+  uint64_t dis_userid = ficlStackPopInteger(forth_vm->dataStack);
   log_info("Muting: %lu", dis_userid);
   discord_add_guild_member_role(bot_client, GUILD_ID, dis_userid, MUTE_ROLE,
                                 NULL, NULL);
@@ -132,7 +132,7 @@ void disKick(ficlVm *forth_vm) {
   ficlVmExecuteWord(forth_vm, ficlDictionaryLookup(forth_dict, tempString1));
   dis_msg = ficlStackPopPointer(forth_vm->dataStack);
   bot_client = ficlStackPopPointer(forth_vm->dataStack);
-  uint64_t *dis_userid = ficlStackPopInteger(forth_vm->dataStack);
+  uint64_t dis_userid = ficlStackPopInteger(forth_vm->dataStack);
   log_info("Kicking: %lu", dis_userid);
   discord_remove_guild_member(bot_client, GUILD_ID, dis_userid, NULL, NULL);
 }
@@ -149,7 +149,7 @@ void disBan(ficlVm *forth_vm) {
   ficlVmExecuteWord(forth_vm, ficlDictionaryLookup(forth_dict, tempString1));
   dis_msg = ficlStackPopPointer(forth_vm->dataStack);
   bot_client = ficlStackPopPointer(forth_vm->dataStack);
-  uint64_t *dis_userid = ficlStackPopInteger(forth_vm->dataStack);
+  uint64_t dis_userid = ficlStackPopInteger(forth_vm->dataStack);
   log_info("Ban: %lu", dis_userid);
   discord_create_guild_ban(
       bot_client, GUILD_ID, dis_userid,
@@ -168,7 +168,7 @@ void disDelBan(ficlVm *forth_vm) {
   ficlVmExecuteWord(forth_vm, ficlDictionaryLookup(forth_dict, tempString1));
   dis_msg = ficlStackPopPointer(forth_vm->dataStack);
   bot_client = ficlStackPopPointer(forth_vm->dataStack);
-  uint64_t *dis_userid = ficlStackPopInteger(forth_vm->dataStack);
+  uint64_t dis_userid = ficlStackPopInteger(forth_vm->dataStack);
   log_info("Ban: %lu", dis_userid);
   discord_create_guild_ban(
       bot_client, GUILD_ID, dis_userid,

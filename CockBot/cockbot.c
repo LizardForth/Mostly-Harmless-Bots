@@ -1,24 +1,27 @@
 #include <assert.h>
-#include <concord/discord.h>
-#include <concord/log.h>
 #include <pthread.h>
 #include <signal.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <errno.h>
+#include <concord/discord.h>
+#include <concord/log.h>
+#include <sys/resource.h>
 
 #include "cockbot.h"
 #include "ficl/ficl.h"
 #include "forthFunctions.h"
 #include "discordEvents.h"
 
+
 ficlSystem *forth_system;
 
 struct forth_runnerArgs {
   char *forth_out;
   char *forth_in;
-  int *forth_rc;
+  int forth_rc;
   int bot_cmd;
   struct discord_message *dis_msg;
   struct discord *bot_client;
@@ -582,8 +585,7 @@ void *forthRunner(void *input) {
   freopen("/dev/null", "a", stdout);
   setbuf(stdout, ((struct forth_runnerArgs *)input)->forth_out);
   ((struct forth_runnerArgs *)input)->forth_rc = -127;
-  ((struct forth_runnerArgs *)input)->forth_rc =
-      ficlVmEvaluate(forth_vm, ((struct forth_runnerArgs *)input)->forth_in);
+  ((struct forth_runnerArgs *)input)->forth_rc = ficlVmEvaluate(forth_vm, ((struct forth_runnerArgs *)input)->forth_in);
   if (((struct forth_runnerArgs *)input)->forth_rc == -257) {
     ficlVmTextOut(forth_vm, "ok");
   }
@@ -740,15 +742,11 @@ void disOnMessage(struct discord *bot_client,
 }
 
 int main(void) {
-
   forth_system = ficlSystemCreate(NULL);
-  char bot_token[100];
-  FILE *tokenFile;
   pthread_mutex_init(&forth_mutex, NULL);
   pthread_cond_init(&forth_done, NULL);
 
   ccord_global_init();
-
   struct discord *bot_client = discord_config_init("./config.json");
 
   discord_add_intents(bot_client, DISCORD_GATEWAY_MESSAGE_CONTENT);
