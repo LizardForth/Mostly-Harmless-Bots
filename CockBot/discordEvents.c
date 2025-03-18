@@ -7,7 +7,7 @@
 
 #include "cockbot.h"
 
-void disOnReady(struct discord *bot_client) {
+void disOnReady(struct discord *bot_client, const struct discord_ready *event) {
   const struct discord_user *dis_bot = discord_get_self(bot_client);
   log_info("Logged in as %s!", dis_bot->username);
   struct discord_activity dis_activities[] = {
@@ -33,12 +33,11 @@ void disOnReady(struct discord *bot_client) {
 }
 
 // As of right now this only counts the number of correct emotes on reaction.
-void disOnReactionAdd(struct discord *bot_client, u64snowflake dis_userId,
-                      u64snowflake dis_chanId, u64snowflake dis_msgId,
-                      u64snowflake dis_guildId,
-                      const struct discord_guild_member *dis_member,
-                      const struct discord_emoji *dis_emoji) {
-  if (dis_emoji->id != POLLO_ID) {
+void disOnReactionAdd(struct discord *bot_client, const struct discord_message_reaction_add *event) {
+  u64snowflake dis_chanId = event->channel_id;
+  u64snowflake dis_msgId = event->message_id;
+
+  if (event->emoji->id != POLLO_ID) {
     return;
   }
   struct discord_message dis_msg;
