@@ -5,9 +5,9 @@ HEADERS= ficl/ficl.h ficl/ficlplatform/unix.h
 # Flags for shared library
 #TARGET= -Dlinux  # riscos MOTO_CPU32
 SHFLAGS = -fPIC
-SHUTUPFLAGS=-Wno-int-conversion
-CFLAGS= -O $(SHFLAGS) $(SHUTUPFLAGS) -w -Wall -g -fsanitize=address -Wpedantic 
-CC=cc
+SHUTUPFLAGS= -Wno-int-conversion
+CFLAGS= -O $(SHFLAGS) $(SHUTUPFLAGS) -w -Wall -g -Wpedantic -fsanitize=address
+CC=clang
 CPPFLAGS= $(TARGET) -I.
 LIB = ar crs
 

@@ -316,18 +316,18 @@ void errEmbed(struct discord *bot_client, const struct discord_message *dis_msg,
   discord_embed_add_field(&dis_embeds[0], "Input Code:", forth_in, false);
 
   switch (forth_rc) {
-  case -256:
+  case FICL_VM_STATUS_INNER_EXIT:
     discord_embed_add_field(&dis_embeds[1], "Error Explanation:",
                             "Your code exited the inner interpreter loop",
                             false);
     break;
-  case -258:
+  case FICL_VM_STATUS_RESTART:
     discord_embed_add_field(&dis_embeds[1], "Error Explanation:",
                             "One of your words needs more text to "
                             "execute, try re-running it.",
                             false);
     break;
-  case -260:
+  case FICL_VM_STATUS_ERROR_EXIT:
     discord_embed_add_field(
         &dis_embeds[1], "Error Explanation:",
         "Your code has encountered an error check output for info.", false);
@@ -407,28 +407,28 @@ void errEmbed(struct discord *bot_client, const struct discord_message *dis_msg,
           false);
     }
     break;
-  case -259:
+  case FICL_VM_STATUS_USER_EXIT:
     discord_embed_add_field(&dis_embeds[1], "Error Explanation:",
                             "Your code  attempted to exit.", false);
     break;
-  case -261:
+  case FICL_VM_STATUS_BREAK:
     discord_embed_add_field(&dis_embeds[1], "Error Explanation:",
                             "Your code reached a debugger breakpoint.", false);
     break;
-  case -1:
+  case FICL_VM_STATUS_ABORT:
     discord_embed_add_field(&dis_embeds[1], "Error Explanation",
                             "Your code encountered an error that made it "
                             "abort. Check the output",
                             false);
     break;
-  case -2:
+  case FICL_VM_STATUS_ABORTQ:
     discord_embed_add_field(
         &dis_embeds[1], "Error Explanation",
         "Your code encountered an error that made it abort\". Check the "
         "output. Note this is different than the normal abort.",
         false);
     break;
-  case -56:
+  case FICL_VM_STATUS_QUIT:
     discord_embed_add_field(&dis_embeds[1], "Error Explanation",
                             "Your code encountered an error that made it "
                             "quit. Check the output",
@@ -563,15 +563,16 @@ void *forthRunner(void *input) {
     ficlDictionarySetPrimitive(forth_dict, "restart", disRestart,
                                FICL_WORD_DEFAULT);
     ficlDictionarySetPrimitive(forth_dict, "pin", disPin, FICL_WORD_DEFAULT);
-    ficlDictionarySetPrimitive(forth_dict, "mute", disMute, FICL_WORD_DEFAULT);
+    ficlDictionarySetPrimitive(forth_dict, "ohio", disOhio, FICL_WORD_DEFAULT);
+    ficlDictionarySetPrimitive(forth_dict, "unohio", disUnOhio, FICL_WORD_DEFAULT);
     ficlDictionarySetPrimitive(forth_dict, "ban", disBan, FICL_WORD_DEFAULT);
     ficlDictionarySetPrimitive(forth_dict, "delban", disDelBan,
                                FICL_WORD_DEFAULT);
     ficlDictionarySetPrimitive(forth_dict, "kick", disKick, FICL_WORD_DEFAULT);
     ficlDictionarySetConstant(forth_dict, "dis_msg",
-                              ((struct forth_runnerArgs *)input)->dis_msg);
+                              (ficlInteger)(((struct forth_runnerArgs *)input)->dis_msg));
     ficlDictionarySetConstant(forth_dict, "bot_client",
-                              ((struct forth_runnerArgs *)input)->bot_client);
+                              (ficlInteger)(((struct forth_runnerArgs *)input)->bot_client));
     ficlDictionarySetPrimitive(forth_dict, "load", disLoadScript,
                                FICL_WORD_DEFAULT);
   }
@@ -725,7 +726,7 @@ void disOnMessage(struct discord *bot_client,
     if (bot_cmd == 2) {
       cmdEmbed(bot_client, dis_msg, forth_inFormatted, forth_outFormatted,
                forth_rc);
-    } else if (forth_rc != -257) {
+    } else if (forth_rc != FICL_VM_STATUS_OUT_OF_TEXT) {
       errEmbed(bot_client, dis_msg, forth_inFormatted, forth_outFormatted,
                forth_rc, forth_out);
     } else {

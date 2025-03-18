@@ -15,7 +15,7 @@ extern ficlSystem *forth_system;
 // Values
 // *********************
 
-#define MUTE_ROLE 1052842619937501194
+#define MUTE_ROLE 1342319605925937232
 
 #define GUILD_ID 953769673634246757
 

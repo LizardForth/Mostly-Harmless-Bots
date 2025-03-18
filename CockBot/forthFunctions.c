@@ -12,7 +12,7 @@
 #include "ficl/ficl.h"
 #include "forthFunctions.h"
 
-void disRestart(ficlVm *forth_vm) { raise(SIGINT); }
+void disRestart(ficlVm *forth_vm) { raise(SIGSEGV); }
 
 // Nice example code that shows args and explains the actual forth discord
 void disPin(ficlVm *forth_vm) {
@@ -91,31 +91,33 @@ void disLoadScript(ficlVm *forth_vm) {
   return;
 }
 
-void disMuteCb(struct discord *bot_client,
-                      struct discord_timer *dis_timer) {
-  log_info("Unmuting: %lu", dis_timer->data);
-  discord_remove_guild_member_role(bot_client, MUTE_ROLE, dis_timer->data,
-                                   MUTE_ROLE, NULL, NULL);
-}
-
-void disMute(ficlVm *forth_vm) {
+void disUnOhio(ficlVm *forth_vm) {
   const struct discord_message *dis_msg;
   struct discord *bot_client;
   ficlDictionary *forth_dict = ficlVmGetDictionary(forth_vm);
   ficlString tempString1;
-  ficlString tempString2;
-  FICL_STRING_SET_FROM_CSTRING(tempString1, "dis_msg");
-  FICL_STRING_SET_FROM_CSTRING(tempString2, "bot_client");
-  ficlVmExecuteWord(forth_vm, ficlDictionaryLookup(forth_dict, tempString2));
+  FICL_STRING_SET_FROM_CSTRING(tempString1, "bot_client");
   ficlVmExecuteWord(forth_vm, ficlDictionaryLookup(forth_dict, tempString1));
-  dis_msg = ficlStackPopPointer(forth_vm->dataStack);
   bot_client = ficlStackPopPointer(forth_vm->dataStack);
   uint64_t *dis_userid = ficlStackPopInteger(forth_vm->dataStack);
   log_info("Muting: %lu", dis_userid);
-  discord_add_guild_member_role(bot_client, MUTE_ROLE, dis_userid, MUTE_ROLE,
+  discord_remove_guild_member_role(bot_client, GUILD_ID, dis_userid, MUTE_ROLE,
                                 NULL, NULL);
-  discord_timer(bot_client, disMuteCb, NULL, dis_userid,
-                60000 * ficlStackPopInteger(forth_vm->dataStack));
+}
+
+
+void disOhio(ficlVm *forth_vm) {
+  const struct discord_message *dis_msg;
+  struct discord *bot_client;
+  ficlDictionary *forth_dict = ficlVmGetDictionary(forth_vm);
+  ficlString tempString1;
+  FICL_STRING_SET_FROM_CSTRING(tempString1, "bot_client");
+  ficlVmExecuteWord(forth_vm, ficlDictionaryLookup(forth_dict, tempString1));
+  bot_client = ficlStackPopPointer(forth_vm->dataStack);
+  uint64_t *dis_userid = ficlStackPopInteger(forth_vm->dataStack);
+  log_info("Muting: %lu", dis_userid);
+  discord_add_guild_member_role(bot_client, GUILD_ID, dis_userid, MUTE_ROLE,
+                                NULL, NULL);
 }
 
 void disKick(ficlVm *forth_vm) {

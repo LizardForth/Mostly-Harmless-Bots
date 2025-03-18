@@ -10,9 +10,9 @@ void disRestart(ficlVm *forth_vm);
 
 void disLoadScript(ficlVm *forth_vm);
 
-void disMuteCb(struct discord *bot_client, struct discord_timer *dis_timer);
+void disOhio(ficlVm *forth_vm);
 
-void disMute(ficlVm *forth_vm);
+void disUnOhio(ficlVm *forth_vm);
 
 void disKick(ficlVm *forth_vm);
 
