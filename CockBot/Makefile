@@ -11,7 +11,7 @@ AR=ar
 #TARGET= -Dlinux  # riscos MOTO_CPU32
 SHFLAGS = -fPIC
 SHUTUPFLAGS=
-CFLAGS= -O2 $(SHFLAGS) $(SHUTUPFLAGS) -w -g -Wpedantic
+CFLAGS= -O2 $(SHFLAGS) $(SHUTUPFLAGS) -w -g -Wpedantic -ffunction-sections -fdata-sections
 CPPFLAGS= $(TARGET) -I.
 LIBRARIES= -lm -lcurl -ldiscord -lpthread
 
@@ -21,7 +21,7 @@ CBOBJECTS= cockbot.o discordEvents.o forthFunctions.o
 CBHEADERS= cockbot.h discordEvents.h forthFucntions.h
 HEADERS= $(FICLHEADERS) $(CBHEADERS)
 
-all: cockbot libficl.so
+all: cockbot libficl.so ficl-cli
 
 cockbot: ficl $(CBOBJECTS)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(CBOBJECTS) libficl.a -o bot/cockbot -L. $(LIBRARIES)
@@ -35,6 +35,9 @@ libficl.a: $(FICLOBJECTS)
 libficl.so: libficl.so.$(MAJOR).$(MINOR)
 	ln -sf libficl.so.$(MAJOR).$(MINOR) libficl.so.$(MAJOR)
 	ln -sf $< $@
+
+ficl-cli: libficl.a
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) ficl-cli.c libficl.a -o ficl-cli -L. $(LIBRARIES)
 
 # shared library build
 libficl.so.$(MAJOR).$(MINOR): $(FICLOBJECTS)
