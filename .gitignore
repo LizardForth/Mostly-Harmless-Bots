@@ -1,4 +1,6 @@
 *.[ao]
+*.so.[0-9.]*
+*.so
 config.json
 CockBot/bot/cockbot
 bot.log

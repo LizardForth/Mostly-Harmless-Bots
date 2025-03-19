@@ -5,13 +5,13 @@ MAJOR = 4
 MINOR = 1.0
 
 CC=clang
-AR=ar crs
+AR=ar
 
 # Flags for shared library
 #TARGET= -Dlinux  # riscos MOTO_CPU32
 SHFLAGS = -fPIC
 SHUTUPFLAGS=
-CFLAGS= -O2 $(SHFLAGS) $(SHUTUPFLAGS) -w -g -Wpedantic -fsanitize=address
+CFLAGS= -O2 $(SHFLAGS) $(SHUTUPFLAGS) -w -g -Wpedantic
 CPPFLAGS= $(TARGET) -I.
 LIBRARIES= -lm -lcurl -ldiscord -lpthread
 
@@ -30,7 +30,7 @@ ficl: libficl.a libficl.so
 
 # static library build
 libficl.a: $(FICLOBJECTS)
-	$(AR) $@ $(FICLOBJECTS)
+	$(AR) crs $@ $(FICLOBJECTS)
 
 libficl.so: libficl.so.$(MAJOR).$(MINOR)
 	ln -sf libficl.so.$(MAJOR).$(MINOR) libficl.so.$(MAJOR)

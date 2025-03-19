@@ -46,7 +46,8 @@ void disLoadScript(ficlVm *forth_vm) {
   ficlCell loaderOldID;
   ficlString s;
 
-  loaderFile = fopen(ADMIN_SCRIPT, "r");
+  if ((loaderFile = fopen(ADMIN_SCRIPT, "r")) == NULL)
+    ficlVmThrowError(forth_vm, "Script "ADMIN_SCRIPT" does not exist in the current path");
 
   loaderOldID = forth_vm->sourceId;
   forth_vm->sourceId.p = (void *)loaderFile;
