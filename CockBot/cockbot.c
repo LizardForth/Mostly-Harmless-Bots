@@ -1,24 +1,26 @@
 #include <assert.h>
 #include <concord/discord.h>
 #include <concord/log.h>
+#include <errno.h>
 #include <pthread.h>
 #include <signal.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/resource.h>
 #include <time.h>
 #include <unistd.h>
 
 #include "cockbot.h"
+#include "discordEvents.h"
 #include "ficl/ficl.h"
 #include "forthFunctions.h"
-#include "discordEvents.h"
 
 ficlSystem *forth_system;
 
 struct forth_runnerArgs {
   char *forth_out;
   char *forth_in;
-  int *forth_rc;
+  int forth_rc;
   int bot_cmd;
   struct discord_message *dis_msg;
   struct discord *bot_client;
@@ -28,7 +30,7 @@ pthread_mutex_t forth_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t forth_done = PTHREAD_COND_INITIALIZER;
 
 int hasPostfix(char *strIn, char *postfix) {
-  return (!strcmp(&strIn[strlen(strIn)-4], postfix));
+  return (!strcmp(&strIn[strlen(strIn) - 4], postfix));
 }
 
 char *strReplace(const char *strIn, const char *strMatch,
@@ -46,8 +48,8 @@ char *strReplace(const char *strIn, const char *strMatch,
   }
 
   // Making new string of enough length
-  char *strOut = 
-    (char *)malloc(i + count * (strlen(strReplace) - strlen(strMatch)) + 1);
+  char *strOut =
+      (char *)malloc(i + count * (strlen(strReplace) - strlen(strMatch)) + 1);
 
   i = 0;
   while (*strIn) {
@@ -182,55 +184,43 @@ void helpEmbed(struct discord *bot_client,
 }
 
 // command parsing
-int botGetCmd(
-  struct discord *bot_client, 
-  struct discord_message *dis_msg,
-  char *forth_in
-) {
+int botGetCmd(struct discord *bot_client, struct discord_message *dis_msg,
+              char *forth_in) {
   char *forth_error = (char *)malloc(strlen(forth_in) + 9);
   snprintf(forth_error, strlen(forth_in) + 9, "``` %s ```", forth_in);
 
-  if (
-    hasPostfix(dis_msg->content, "!fth") ||
-    hasPostfix(dis_msg->content, "!FTH")
-  ) {
+  if (hasPostfix(dis_msg->content, "!fth") ||
+      hasPostfix(dis_msg->content, "!FTH")) {
     free(forth_error);
     return 1;
-  } else if (
-    hasPostfix(dis_msg->content, "!hlp") ||
-    hasPostfix(dis_msg->content, "!HLP")
-    ) {
+  } else if (hasPostfix(dis_msg->content, "!hlp") ||
+             hasPostfix(dis_msg->content, "!HLP")) {
     free(forth_error);
     return 4;
-  } else if (
-    hasPostfix(dis_msg->content, "!adm") ||
-    hasPostfix(dis_msg->content, "!ADM") ||
-    hasPostfix(dis_msg->content, "!cmd") ||
-    hasPostfix(dis_msg->content, "!CMD")
-    ) {
-      for (int i = 0; i < dis_msg->member->roles->size; i++) {
-        if (dis_msg->member->roles->array[i] == ADMIN_ROLE) {
-          // log_info("Admin is Executing");
-          if (
-            hasPostfix(dis_msg->content,"!adm") ||
-            hasPostfix(dis_msg->content,"!ADM")
-          ) {
-            free(forth_error);
-            return 3;
-          } else {
-            free(forth_error);
-            return 2;
-          }
+  } else if (hasPostfix(dis_msg->content, "!adm") ||
+             hasPostfix(dis_msg->content, "!ADM") ||
+             hasPostfix(dis_msg->content, "!cmd") ||
+             hasPostfix(dis_msg->content, "!CMD")) {
+    for (int i = 0; i < dis_msg->member->roles->size; i++) {
+      if (dis_msg->member->roles->array[i] == ADMIN_ROLE) {
+        // log_info("Admin is Executing");
+        if (hasPostfix(dis_msg->content, "!adm") ||
+            hasPostfix(dis_msg->content, "!ADM")) {
+          free(forth_error);
+          return 3;
+        } else {
+          free(forth_error);
+          return 2;
         }
       }
-      accessErrorEmbed(bot_client, dis_msg, forth_error);
-      free(forth_error);
-      return 0;
     }
+    accessErrorEmbed(bot_client, dis_msg, forth_error);
+    free(forth_error);
+    return 0;
+  }
   free(forth_error);
   return 0;
 }
-
 
 void cmdEmbed(struct discord *bot_client, const struct discord_message *dis_msg,
               char *forth_in, char *forth_out, int forth_rc) {
@@ -304,6 +294,43 @@ void cmdEmbed(struct discord *bot_client, const struct discord_message *dis_msg,
   }
 }
 
+void toolongEmbed(struct discord *bot_client,
+                  const struct discord_message *dis_msg, char *forth_in,
+                  char *forth_outFormatted, int forth_rc, char *forth_out) {
+  struct discord_embed dis_embeds[3] = {0};
+  dis_embeds[0].color = COLOR_FAILURE;
+  dis_embeds[1].color = COLOR_FAILURE;
+  dis_embeds[2].color = COLOR_FAILURE;
+  discord_embed_set_title(&dis_embeds[0], "Forth Bot Error:");
+  discord_embed_add_field(&dis_embeds[0], "Input Code:", forth_in, false);
+  discord_embed_add_field(&dis_embeds[1], "Error Explanation:",
+                          "The output of the program is too long to be printed",
+                          false);
+  discord_embed_add_field(
+      &dis_embeds[1], "Error Output:", "[More than 1024 characters]", false);
+  discord_embed_set_footer(&dis_embeds[2], "TESTING TESTING", ERROR_ICON, "");
+  discord_create_message(
+      bot_client, dis_msg->channel_id,
+      &(struct discord_create_message){
+          .allowed_mentions =
+              &(struct discord_allowed_mention){
+                  .replied_user = false,
+              },
+          .message_reference =
+              &(struct discord_message_reference){
+                  .message_id = dis_msg->id,
+                  .channel_id = dis_msg->channel_id,
+                  .guild_id = dis_msg->guild_id,
+              },
+
+          .embeds = &(struct discord_embeds){.size = sizeof(dis_embeds) /
+                                                     sizeof *dis_embeds,
+                                             .array = dis_embeds}},
+      NULL);
+  discord_embed_cleanup(&dis_embeds[0]);
+  discord_embed_cleanup(&dis_embeds[1]);
+  discord_embed_cleanup(&dis_embeds[2]);
+}
 void errEmbed(struct discord *bot_client, const struct discord_message *dis_msg,
               char *forth_in, char *forth_outFormatted, int forth_rc,
               char *forth_out) {
@@ -483,7 +510,10 @@ void regEmbed(struct discord *bot_client, const struct discord_message *dis_msg,
        .fields = &(struct discord_embed_fields){
            .size = 1,
            .array = (struct discord_embed_field[]){
-               {.name = "Output:", .value = forth_out, .Inline = false}}}}};
+               {.name = "Output:",
+                .value = strlen(forth_out) < 1024 ? forth_out
+                                                  : "Error: Program too long",
+                .Inline = false}}}}};
 
   discord_create_message(
       bot_client, dis_msg->channel_id,
@@ -553,26 +583,33 @@ void timeoutEmbed(struct discord *bot_client,
 
 void *forthRunner(void *input) {
   log_info("Starting Forth");
-
   log_info("Starting Runner");
   ficlVm *forth_vm;
   forth_vm = ficlSystemCreateVm(forth_system);
   ficlDictionary *forth_dict = ficlVmGetDictionary(forth_vm);
+
+  ficlDictionarySetPrimitive(forth_dict, "uptime", disUptime,
+                             FICL_WORD_DEFAULT);
+  ficlDictionarySetPrimitive(forth_dict, "rand", disUptime, FICL_WORD_DEFAULT);
+
   if (((struct forth_runnerArgs *)input)->bot_cmd == 2 ||
       ((struct forth_runnerArgs *)input)->bot_cmd == 3) {
     ficlDictionarySetPrimitive(forth_dict, "restart", disRestart,
                                FICL_WORD_DEFAULT);
     ficlDictionarySetPrimitive(forth_dict, "pin", disPin, FICL_WORD_DEFAULT);
     ficlDictionarySetPrimitive(forth_dict, "ohio", disOhio, FICL_WORD_DEFAULT);
-    ficlDictionarySetPrimitive(forth_dict, "unohio", disUnOhio, FICL_WORD_DEFAULT);
+    ficlDictionarySetPrimitive(forth_dict, "unohio", disUnOhio,
+                               FICL_WORD_DEFAULT);
     ficlDictionarySetPrimitive(forth_dict, "ban", disBan, FICL_WORD_DEFAULT);
     ficlDictionarySetPrimitive(forth_dict, "delban", disDelBan,
                                FICL_WORD_DEFAULT);
     ficlDictionarySetPrimitive(forth_dict, "kick", disKick, FICL_WORD_DEFAULT);
-    ficlDictionarySetConstant(forth_dict, "dis_msg",
-                              (ficlInteger)(((struct forth_runnerArgs *)input)->dis_msg));
-    ficlDictionarySetConstant(forth_dict, "bot_client",
-                              (ficlInteger)(((struct forth_runnerArgs *)input)->bot_client));
+    ficlDictionarySetConstant(
+        forth_dict, "dis_msg",
+        (ficlInteger)(((struct forth_runnerArgs *)input)->dis_msg));
+    ficlDictionarySetConstant(
+        forth_dict, "bot_client",
+        (ficlInteger)(((struct forth_runnerArgs *)input)->bot_client));
     ficlDictionarySetPrimitive(forth_dict, "load", disLoadScript,
                                FICL_WORD_DEFAULT);
   }
@@ -652,7 +689,7 @@ void disOnMessage(struct discord *bot_client,
     discord_create_message(bot_client, dis_msg->channel_id, &dis_params, NULL);
     return;
   }
-  
+
   char *forth_in = (char *)malloc(strlen(dis_msg->content) - 3);
   strncpy(forth_in, dis_msg->content, strlen(dis_msg->content) - 4);
   forth_in[strlen(dis_msg->content) - 4] = '\0';
@@ -678,19 +715,6 @@ void disOnMessage(struct discord *bot_client,
   free(bot_mentionPrep);
 
   log_info("Prefix number: %d", bot_cmd);
-
-  // Some Prescript legacy code
-  /*
-  if (bot_cmd == 3 || bot_cmd == 2) {
-    char *forth_addon = ": TEST .\" TEST\" ; ";
-    char *forth_prep = strdup(forth_in);
-    forth_in =
-        (char *)realloc(forth_in, strlen(forth_in) + strlen(forth_addon) + 2);
-    snprintf(forth_in, strlen(forth_in) + strlen(forth_addon) + 1, "%s %s",
-             forth_addon, forth_prep);
-    free(forth_prep);
-  }
-  */
 
   char *forth_inFormatted = (char *)malloc(strlen(forth_inOld) + 9);
 
@@ -729,6 +753,9 @@ void disOnMessage(struct discord *bot_client,
     } else if (forth_rc != FICL_VM_STATUS_OUT_OF_TEXT) {
       errEmbed(bot_client, dis_msg, forth_inFormatted, forth_outFormatted,
                forth_rc, forth_out);
+    } else if (strlen(forth_outFormatted) > 1024) {
+      toolongEmbed(bot_client, dis_msg, forth_inFormatted, forth_outFormatted,
+                   forth_rc, forth_out);
     } else {
       regEmbed(bot_client, dis_msg, forth_inFormatted, forth_outFormatted);
     }
@@ -739,16 +766,26 @@ void disOnMessage(struct discord *bot_client,
   free(forth_runnerIn);
 }
 
-int main(void) {
+time_t uptime;
+unsigned long long polloemotes[] = {
+    982486221261508608,  1167501376696352859, 993305708135186462,
+    1035645103156494396, 996806132981055569,  1171908512562020382,
+    1064441109297774632, 1168525351350181950, 1171908670829895711,
+    970384190547845170,  1351339473543368734, 1171909884233662534,
+    1035646207692910612, 1171912292582047847, 973500947328290856,
+    1171855900265418784, 1171908410833375328, 970393587256791050,
+    964351201984536577,  1171908362347237406, 1173648997697720382,
+    1014877227135025252, 1171910117940269137, 970378355696357377,
+    1243586956374315098, 1035654365391900744, 1171908591196844225,
+    982487353815859241,  1119336172527816756, 958592178026852352,
+    1171908737372524546};
 
+int main(void) {
   forth_system = ficlSystemCreate(NULL);
-  char bot_token[100];
-  FILE *tokenFile;
   pthread_mutex_init(&forth_mutex, NULL);
   pthread_cond_init(&forth_done, NULL);
 
   ccord_global_init();
-
   struct discord *bot_client = discord_config_init("./config.json");
 
   discord_add_intents(bot_client, DISCORD_GATEWAY_MESSAGE_CONTENT);
@@ -756,6 +793,7 @@ int main(void) {
   discord_set_on_message_create(bot_client, &disOnMessage);
   discord_set_on_message_reaction_add(bot_client, &disOnReactionAdd);
 
+  uptime = time(0);
   discord_run(bot_client);
 
   discord_cleanup(bot_client);

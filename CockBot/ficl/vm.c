@@ -1124,7 +1124,7 @@ void ficlVmInnerLoop(ficlVm *vm, ficlWord *fw) {
       goto COMPARE;
     }
 
-    COMPARE : {
+    COMPARE: {
       char *cp1, *cp2;
       ficlUnsigned u1, u2, uMin;
       int n = 0;

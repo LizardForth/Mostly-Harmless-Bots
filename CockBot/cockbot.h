@@ -2,7 +2,7 @@
 // *********************
 
 #ifndef COCKBOT_H_INCLUDED
-#define COCKBOT_H_INCLUDED 
+#define COCKBOT_H_INCLUDED
 
 #include "ficl/ficl.h"
 // *********************
@@ -10,6 +10,7 @@
 // *********************
 
 extern ficlSystem *forth_system;
+extern time_t uptime;
 
 // *********************
 // Values
