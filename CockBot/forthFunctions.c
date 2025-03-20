@@ -12,25 +12,29 @@
 #include "ficl/ficl.h"
 #include "forthFunctions.h"
 
+static struct discord *get_client_from_forth(ficlVm *forth_vm) {
+  ficlDictionary *forth_dict = ficlVmGetDictionary(forth_vm);
+  ficlString tempString1;
+  FICL_STRING_SET_FROM_CSTRING(tempString1, "bot_client");
+  ficlVmExecuteWord(forth_vm, ficlDictionaryLookup(forth_dict, tempString1));
+  return ficlStackPopPointer(forth_vm->dataStack);
+}
+
+static const struct discord_message *get_dis_msg_from_forth(ficlVm *forth_vm) {
+  ficlDictionary *forth_dict = ficlVmGetDictionary(forth_vm);
+  ficlString tempString2;
+  FICL_STRING_SET_FROM_CSTRING(tempString2, "bot_client");
+  ficlVmExecuteWord(forth_vm, ficlDictionaryLookup(forth_dict, tempString2));
+  return ficlStackPopPointer(forth_vm->dataStack);
+}
+
 void disRestart(ficlVm *forth_vm) { raise(SIGSEGV); }
 
 // Nice example code that shows args and explains the actual forth discord
 void disPin(ficlVm *forth_vm) {
-  const struct discord_message *dis_msg;
-  struct discord *bot_client;
-  ficlDictionary *forth_dict = ficlVmGetDictionary(forth_vm);
-  // FICL Words can't be normal strings since forth uses counted strings.
-  ficlString tempString1;
-  ficlString tempString2;
-  // A nice little undocumented string converter for forth
-  FICL_STRING_SET_FROM_CSTRING(tempString1, "dis_msg");
-  FICL_STRING_SET_FROM_CSTRING(tempString2, "bot_client");
-  // Execute constants cotaining pointers to our message and client structs
-  ficlVmExecuteWord(forth_vm, ficlDictionaryLookup(forth_dict, tempString2));
-  ficlVmExecuteWord(forth_vm, ficlDictionaryLookup(forth_dict, tempString1));
-  // explicitly grab them as pointers and assign structs to them
-  dis_msg = ficlStackPopPointer(forth_vm->dataStack);
-  bot_client = ficlStackPopPointer(forth_vm->dataStack);
+  const struct discord_message *dis_msg = get_client_from_forth(forth_vm);
+  struct discord *bot_client = get_client_from_forth(forth_vm);
+  uint64_t dis_userid = ficlStackPopInteger(forth_vm->dataStack);
   // all discord centric code and the like can be done now grabbing from stack
   discord_pin_message(bot_client, dis_msg->channel_id,
                       ficlStackPopInteger(forth_vm->dataStack), NULL, NULL);
@@ -47,7 +51,8 @@ void disLoadScript(ficlVm *forth_vm) {
   ficlString s;
 
   if ((loaderFile = fopen(ADMIN_SCRIPT, "r")) == NULL)
-    ficlVmThrowError(forth_vm, "Script "ADMIN_SCRIPT" does not exist in the current path");
+    ficlVmThrowError(forth_vm, "Script " ADMIN_SCRIPT
+                               " does not exist in the current path");
 
   loaderOldID = forth_vm->sourceId;
   forth_vm->sourceId.p = (void *)loaderFile;
@@ -92,37 +97,15 @@ void disLoadScript(ficlVm *forth_vm) {
   return;
 }
 
-static struct discord *get_client_from_forth(ficlVm *forth_vm) {
-  const struct discord_message *dis_msg;
-  struct discord *bot_client;
-  ficlDictionary *forth_dict = ficlVmGetDictionary(forth_vm);
-  ficlString tempString1;
-  FICL_STRING_SET_FROM_CSTRING(tempString1, "bot_client");
-  ficlVmExecuteWord(forth_vm, ficlDictionaryLookup(forth_dict, tempString1));
-  return ficlStackPopPointer(forth_vm->dataStack);
-}
-
-static const struct discord_message *get_dis_msg_from_forth(ficlVm *forth_vm) {
-  struct discord_message *dis_msg;
-  ficlDictionary *forth_dict = ficlVmGetDictionary(forth_vm);
-  ficlString tempString2;
-  FICL_STRING_SET_FROM_CSTRING(tempString2, "bot_client");
-  ficlVmExecuteWord(forth_vm, ficlDictionaryLookup(forth_dict, tempString2));
-  return ficlStackPopPointer(forth_vm->dataStack);
-}
-
 void disUnOhio(ficlVm *forth_vm) {
-  const struct discord_message *dis_msg;
   struct discord *bot_client = get_client_from_forth(forth_vm);
   uint64_t dis_userid = ficlStackPopInteger(forth_vm->dataStack);
   log_info("Muting: %lu", dis_userid);
   discord_remove_guild_member_role(bot_client, GUILD_ID, dis_userid, MUTE_ROLE,
-                                NULL, NULL);
+                                   NULL, NULL);
 }
 
-
 void disOhio(ficlVm *forth_vm) {
-  const struct discord_message *dis_msg;
   struct discord *bot_client = get_client_from_forth(forth_vm);
   uint64_t dis_userid = ficlStackPopInteger(forth_vm->dataStack);
   log_info("Muting: %lu", dis_userid);
@@ -131,10 +114,13 @@ void disOhio(ficlVm *forth_vm) {
 }
 
 void disUptime(ficlVm *forth_vm) {
-  const struct discord_message *dis_msg;
-  struct discord *bot_client = get_client_from_forth(forth_vm);
-  uint64_t dis_userid = ficlStackPopInteger(forth_vm->dataStack);
-  log_info("Printing uptime", dis_userid);
+  ficlStackPushInteger(forth_vm->dataStack, time(0) - uptime);
+}
+
+void disRand(ficlVm *forth_vm) {
+  uint64_t max = ficlStackPopInteger(forth_vm->dataStack);
+  uint64_t min = ficlStackPopInteger(forth_vm->dataStack);
+  ficlStackPushInteger(forth_vm->dataStack, (rand() % (max - min)) + min);
 }
 
 void disKick(ficlVm *forth_vm) {

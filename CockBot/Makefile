@@ -11,7 +11,7 @@ AR=ar
 #TARGET= -Dlinux  # riscos MOTO_CPU32
 SHFLAGS = -fPIC
 SHUTUPFLAGS=
-CFLAGS= -O2 $(SHFLAGS) $(SHUTUPFLAGS) -w -g -Wpedantic -ffunction-sections -fdata-sections
+CFLAGS= -O2 $(SHFLAGS) $(SHUTUPFLAGS) -w -g -Wpedantic -fsanitize=address
 CPPFLAGS= $(TARGET) -I.
 LIBRARIES= -lm -lcurl -ldiscord -lpthread
 

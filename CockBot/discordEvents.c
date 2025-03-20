@@ -33,7 +33,8 @@ void disOnReady(struct discord *bot_client, const struct discord_ready *event) {
 }
 
 // As of right now this only counts the number of correct emotes on reaction.
-void disOnReactionAdd(struct discord *bot_client, const struct discord_message_reaction_add *event) {
+void disOnReactionAdd(struct discord *bot_client,
+                      const struct discord_message_reaction_add *event) {
   u64snowflake dis_chanId = event->channel_id;
   u64snowflake dis_msgId = event->message_id;
 

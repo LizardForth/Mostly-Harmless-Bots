@@ -14,7 +14,7 @@
 ** contact me by email at the address above.
 **
 ** L I C E N S E  and  D I S C L A I M E R
-** 
+**
 ** Redistribution and use in source and binary forms, with or without
 ** modification, are permitted provided that the following conditions
 ** are met:
@@ -42,38 +42,33 @@
 
 #include "ficl/ficl.h"
 
+int main(int argc, char **argv) {
+  int returnValue = 0;
+  char buffer[256];
+  char *gotline;
+  ficlVm *vm;
+  ficlSystem *system;
 
-int main(int argc, char **argv)
-{
-    int returnValue = 0;
-    char buffer[256];
-    char *gotline;
-    ficlVm *vm;
-	ficlSystem *system;
+  system = ficlSystemCreate(NULL);
+  ficlSystemCompileExtras(system);
+  vm = ficlSystemCreateVm(system);
 
-    system = ficlSystemCreate(NULL);
-    ficlSystemCompileExtras(system);
-    vm = ficlSystemCreateVm(system);
+  returnValue = ficlVmEvaluate(vm, ".ver .( " __DATE__ " ) cr quit");
 
-    returnValue = ficlVmEvaluate(vm, ".ver .( " __DATE__ " ) cr quit");
+  /*
+  ** load files specified on command-line
+  */
+  if (argc > 1) {
+    sprintf(buffer, ".( loading %s ) cr load %s\n cr", argv[1], argv[1]);
+    returnValue = ficlVmEvaluate(vm, buffer);
+  }
 
-    /*
-    ** load files specified on command-line
-    */
-    if (argc  > 1)
-    {
-        sprintf(buffer, ".( loading %s ) cr load %s\n cr", argv[1], argv[1]);
-        returnValue = ficlVmEvaluate(vm, buffer);
-    }
+  while (returnValue != FICL_VM_STATUS_USER_EXIT) {
+    fputs(FICL_PROMPT, stdout);
+    gotline = fgets(buffer, sizeof(buffer), stdin);
+    returnValue = ficlVmEvaluate(vm, gotline);
+  }
 
-    while (returnValue != FICL_VM_STATUS_USER_EXIT)
-    {
-	    fputs(FICL_PROMPT, stdout);
-        gotline = fgets(buffer, sizeof(buffer), stdin);
-        returnValue = ficlVmEvaluate(vm, gotline);
-    }
-
-    ficlSystemDestroy(system);
-    return 0;
+  ficlSystemDestroy(system);
+  return 0;
 }
-
